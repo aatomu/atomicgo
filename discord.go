@@ -37,6 +37,7 @@ func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (
 	}
 	messageData.channelID = m.ChannelID
 	messageData.channelData, _ = discord.Channel(messageData.channelID)
+	messageData.channelName = messageData.channelData.Name
 	messageData.text = m.Content
 	messageData.authorID = m.Author.ID
 	messageData.authorNum = m.Author.Discriminator
