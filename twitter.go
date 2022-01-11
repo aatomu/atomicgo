@@ -3,7 +3,6 @@ package atomicgo
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 
@@ -22,7 +21,7 @@ type TwitterAPIKeys struct {
 //TwitterAPIKeyを.jsonから入手
 func TwitterAPIkeysGet(path string) (APIKeys TwitterAPIKeys) {
 	// Json読み込み
-	raw, err := ioutil.ReadFile("./twitterAPIKeys.json")
+	raw, err := ReadAndCreateFileFlash(path)
 	if err != nil {
 		log.Println("failed read APIKeys")
 	}
