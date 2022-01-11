@@ -111,7 +111,7 @@ func WriteFileFlash(filePath string, data []byte, perm fs.FileMode) error {
 }
 
 //ファイル一覧
-func fileList(dir string) (list string, faild bool) {
+func FileList(dir string) (list string, faild bool) {
 	//ディレクトリ読み取り
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -123,7 +123,7 @@ func fileList(dir string) (list string, faild bool) {
 	for _, file := range files {
 		//ディレクトリなら一個下でやる
 		if file.IsDir() {
-			data, ok := fileList(dir + "/" + file.Name())
+			data, ok := FileList(dir + "/" + file.Name())
 			if !ok {
 				PrintError("Failed func fileList()", err)
 				return "", false

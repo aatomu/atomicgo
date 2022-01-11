@@ -45,8 +45,6 @@ func TwitterSearch(APIKeys TwitterAPIKeys, searchLimit int, keyWord string) (twe
 
 	//検索
 	searchResult, _ := api.GetSearch(keyWord, v)
-	for _, tweet := range searchResult.Statuses {
-		tweets = append(tweets, tweet)
-	}
+	tweets = searchResult.Statuses
 	return
 }
