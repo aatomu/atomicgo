@@ -26,7 +26,7 @@ type MessageStruct struct {
 }
 
 //MessageCreate整形
-func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (messageData *MessageStruct) {
+func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (messageData MessageStruct) {
 	var err error
 	messageData.guildID = m.GuildID
 	messageData.guildData, err = discord.Guild(messageData.guildID)
@@ -38,10 +38,11 @@ func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (
 	messageData.channelID = m.ChannelID
 	messageData.channelData, _ = discord.Channel(messageData.channelID)
 	messageData.channelName = messageData.channelData.Name
-	messageData.text = m.Content
 	messageData.authorID = m.Author.ID
 	messageData.authorNum = m.Author.Discriminator
 	messageData.authorName = m.Author.Username
+	messageData.authorData = m.Author
+	messageData.text = m.Content
 	filesURL := ""
 	if len(m.Attachments) > 0 {
 		filesURL = "Files: \""
