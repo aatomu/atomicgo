@@ -26,7 +26,7 @@ type MessageStruct struct {
 }
 
 //MessageCreate整形
-func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageStruct) {
+func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageStruct) {
 	var err error
 	mData.GuildID = m.GuildID
 	mData.GuildData, err = discord.Guild(mData.GuildID)
