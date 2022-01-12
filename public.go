@@ -27,7 +27,6 @@ func GetGoDir() (goDir string) {
 //実行ディレクトリ変更
 func MoveWorkDir(dirPath string) {
 	os.Chdir(dirPath)
-	return
 }
 
 //プログラムの実行 実行終了待機 Errを返却
@@ -157,5 +156,4 @@ func PrintError(message string, err error) {
 		fmt.Printf("---[Error]---\nMessage:\"%s\" %s\n", message, position)
 		fmt.Printf("%s\n", err.Error())
 	}
-	return
 }

@@ -26,33 +26,33 @@ type MessageStruct struct {
 }
 
 //MessageCreate整形
-func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (messageData MessageStruct) {
+func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageStruct) {
 	var err error
-	messageData.guildID = m.GuildID
-	messageData.guildData, err = discord.Guild(messageData.guildID)
+	mData.guildID = m.GuildID
+	mData.guildData, err = discord.Guild(mData.guildID)
 	if err == nil {
-		messageData.guildName = messageData.guildData.Name
+		mData.guildName = mData.guildData.Name
 	} else {
-		messageData.guildName = "DirectMessage"
+		mData.guildName = "DirectMessage"
 	}
-	messageData.channelID = m.ChannelID
-	messageData.channelData, _ = discord.Channel(messageData.channelID)
-	messageData.channelName = messageData.channelData.Name
-	messageData.authorID = m.Author.ID
-	messageData.authorNum = m.Author.Discriminator
-	messageData.authorName = m.Author.Username
-	messageData.authorData = m.Author
-	messageData.text = m.Content
+	mData.channelID = m.ChannelID
+	mData.channelData, _ = discord.Channel(mData.channelID)
+	mData.channelName = mData.channelData.Name
+	mData.authorID = m.Author.ID
+	mData.authorNum = m.Author.Discriminator
+	mData.authorName = m.Author.Username
+	mData.authorData, _ = discord.User(mData.authorID)
+	mData.text = m.Content
 	filesURL := ""
 	if len(m.Attachments) > 0 {
 		filesURL = "Files: \""
 		for _, file := range m.Attachments {
 			filesURL = filesURL + file.URL + ","
-			messageData.files = append(messageData.files, file.URL)
+			mData.files = append(mData.files, file.URL)
 		}
 		filesURL = filesURL + "\"  "
 	}
-	log.Print("Guild:\"" + messageData.guildName + "\"  Channel:\"" + messageData.channelName + "\"  " + filesURL + "<" + messageData.authorName + "#" + messageData.authorNum + ">: " + messageData.text)
+	log.Print("Guild:\"" + mData.guildName + "\"  Channel:\"" + mData.channelName + "\"  " + filesURL + "<" + mData.authorName + "#" + mData.authorNum + ">: " + mData.text)
 	return
 }
 
@@ -60,14 +60,12 @@ func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (
 func SendEmbed(discord *discordgo.Session, channelID string, embed *discordgo.MessageEmbed) {
 	_, err := discord.ChannelMessageSendEmbed(channelID, embed)
 	PrintError("send Embed", err)
-	return
 }
 
 //リアクション追加用
 func AddReaction(discord *discordgo.Session, channelID string, messageID string, reaction string) {
 	err := discord.MessageReactionAdd(channelID, messageID, reaction)
 	PrintError("Failed reaction add", err)
-	return
 }
 
 //音再生
@@ -146,7 +144,6 @@ func BotStateUpdate(discord *discordgo.Session, gameName string) {
 		Status: "online",
 	}
 	discord.UpdateStatusComplex(state)
-	return
 }
 
 //スラッシュコマンド作成
@@ -154,7 +151,7 @@ func SlashCommandCreate(discord *discordgo.Session, guildID string, commands []*
 	for _, command := range commands {
 		_, err := discord.ApplicationCommandCreate(discord.State.User.ID, guildID, command)
 		if err != nil {
-			return fmt.Errorf("Cannot create '%v' command: %v", command.Name, err)
+			return fmt.Errorf("cannot create '%s' command: %v", command.Name, err)
 		}
 	}
 	return nil
