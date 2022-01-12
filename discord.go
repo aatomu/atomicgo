@@ -11,48 +11,48 @@ import (
 )
 
 type MessageStruct struct {
-	guildID     string
-	guildName   string
-	guildData   *discordgo.Guild
-	channelID   string
-	channelName string
-	channelData *discordgo.Channel
-	authorID    string
-	authorNum   string
-	authorName  string
-	authorData  *discordgo.User
-	text        string
-	files       []string
+	GuildID     string
+	GuildName   string
+	GuildData   *discordgo.Guild
+	ChannelID   string
+	ChannelName string
+	ChannelData *discordgo.Channel
+	AuthorID    string
+	AuthorNum   string
+	AuthorName  string
+	AuthorData  *discordgo.User
+	Text        string
+	Files       []string
 }
 
 //MessageCreate整形
 func MessageCreateEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageStruct) {
 	var err error
-	mData.guildID = m.GuildID
-	mData.guildData, err = discord.Guild(mData.guildID)
+	mData.GuildID = m.GuildID
+	mData.GuildData, err = discord.Guild(mData.GuildID)
 	if err == nil {
-		mData.guildName = mData.guildData.Name
+		mData.GuildName = mData.GuildData.Name
 	} else {
-		mData.guildName = "DirectMessage"
+		mData.GuildName = "DirectMessage"
 	}
-	mData.channelID = m.ChannelID
-	mData.channelData, _ = discord.Channel(mData.channelID)
-	mData.channelName = mData.channelData.Name
-	mData.authorID = m.Author.ID
-	mData.authorNum = m.Author.Discriminator
-	mData.authorName = m.Author.Username
-	mData.authorData, _ = discord.User(mData.authorID)
-	mData.text = m.Content
+	mData.ChannelID = m.ChannelID
+	mData.ChannelData, _ = discord.Channel(mData.ChannelID)
+	mData.ChannelName = mData.ChannelData.Name
+	mData.AuthorID = m.Author.ID
+	mData.AuthorNum = m.Author.Discriminator
+	mData.AuthorName = m.Author.Username
+	mData.AuthorData = m.Author
+	mData.Text = m.Content
 	filesURL := ""
 	if len(m.Attachments) > 0 {
 		filesURL = "Files: \""
 		for _, file := range m.Attachments {
 			filesURL = filesURL + file.URL + ","
-			mData.files = append(mData.files, file.URL)
+			mData.Files = append(mData.Files, file.URL)
 		}
 		filesURL = filesURL + "\"  "
 	}
-	log.Print("Guild:\"" + mData.guildName + "\"  Channel:\"" + mData.channelName + "\"  " + filesURL + "<" + mData.authorName + "#" + mData.authorNum + ">: " + mData.text)
+	log.Print("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.AuthorName + "#" + mData.AuthorNum + ">: " + mData.Text)
 	return
 }
 
