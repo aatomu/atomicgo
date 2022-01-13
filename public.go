@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -180,4 +181,31 @@ func SetPrintBackColor(r int, g int, b int) {
 func ResetPrintBackColor(r int, g int, b int) {
 	//背景色リセット
 	fmt.Print("\x1b[39m")
+}
+
+type ExMap *sync.Map
+
+//排他的Mapを入手
+//排他的MAPの型 : sync.Map
+func ExMapGet() *sync.Map {
+	return &sync.Map{}
+}
+
+//排他的Mapに書き込み
+func ExMapWrite(ExMap *sync.Map, key string, value interface{}) {
+	ExMap.Store(key, value)
+}
+
+//排他的Mapを読み込み value.(型名)での変換が必要
+func ExMapLord(ExMap *sync.Map, key string, defaultData interface{}) (value interface{}) {
+	value, ok := ExMap.LoadOrStore(key, defaultData)
+	if !ok {
+		PrintError("Failed Get Map Data", fmt.Errorf("unknown map data"))
+	}
+	return
+}
+
+//排他的Mapの削除
+func ExMapDelete(ExMap *sync.Map, key string) {
+	ExMap.Delete(key)
 }
