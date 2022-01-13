@@ -25,6 +25,9 @@ type MessageStruct struct {
 	Files       []string
 }
 
+//Botを起動 Port占有させないため
+//	defer atomicgo.DiscordBotCleanup(discord)
+//が必要
 func DiscordBotBoot(botToken string) (discord *discordgo.Session) {
 	//bot起動準備
 	discord, err := discordgo.New()
@@ -36,11 +39,13 @@ func DiscordBotBoot(botToken string) (discord *discordgo.Session) {
 	//起動
 	err = discord.Open()
 	PrintError("Failed Login", err)
-	defer func() {
-		err = discord.Close()
-		PrintError("Failed Leave", err)
-	}()
+
 	return
+}
+
+func DiscordBotCleanup(discord *discordgo.Session) {
+	err := discord.Close()
+	PrintError("Failed Leave", err)
 }
 
 //MessageCreate整形
