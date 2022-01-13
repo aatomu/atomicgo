@@ -153,29 +153,31 @@ func PrintError(message string, err error) {
 		if ok {
 			position = fmt.Sprintf("%s:%d %s()", fname, line, runtime.FuncForPC(pc).Name())
 		}
-		SetPrintWordColor(255, 0, 0, false)
+		SetPrintWordColor(255, 0, 0)
 		fmt.Printf("---[Error]---\nMessage:\"%s\" %s\n", message, position)
 		fmt.Printf("%s\n", err.Error())
-		SetPrintWordColor(0, 0, 0, true)
+		ResetPrintWordColor()
 	}
 }
 
 //(log||fmt).Print時の文字の色を変える
-func SetPrintWordColor(r int, g int, b int, reset bool) {
+func SetPrintWordColor(r int, g int, b int) {
 	//文字色指定
 	fmt.Print("\x1b[38;2;" + fmt.Sprint(r) + ";" + fmt.Sprint(g) + ";" + fmt.Sprint(b) + "m")
-	//リセット
-	if reset {
-		fmt.Print("\x1b[39m")
-	}
+}
+
+func ResetPrintWordColor() {
+	//文字色リセット
+	fmt.Print("\x1b[39m")
 }
 
 //(log||fmt).Print時の背景色を変える
-func SetPrintBackColor(r int, g int, b int, reset bool) {
+func SetPrintBackColor(r int, g int, b int) {
 	//背景色指定
 	fmt.Print("\x1b[48;2;" + fmt.Sprint(r) + ";" + fmt.Sprint(g) + ";" + fmt.Sprint(b) + "m")
-	//リセット
-	if reset {
-		fmt.Print("\x1b[49m")
-	}
+}
+
+func ResetPrintBackColor(r int, g int, b int) {
+	//背景色リセット
+	fmt.Print("\x1b[39m")
 }
