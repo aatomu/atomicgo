@@ -25,6 +25,24 @@ type MessageStruct struct {
 	Files       []string
 }
 
+func DiscordBotBoot(botToken string) (discord *discordgo.Session) {
+	//bot起動準備
+	discord, err := discordgo.New()
+	PrintError("Failed get discordStruct", err)
+
+	//token入手
+	discord.Token = "Bot " + botToken
+
+	//起動
+	err = discord.Open()
+	PrintError("Failed Login", err)
+	defer func() {
+		err = discord.Close()
+		PrintError("Failed Leave", err)
+	}()
+	return
+}
+
 //MessageCreate整形
 func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageStruct) {
 	var err error
