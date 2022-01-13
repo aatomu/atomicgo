@@ -43,6 +43,7 @@ func DiscordBotBoot(botToken string) (discord *discordgo.Session) {
 	return
 }
 
+//Botの使用していたws/wssを削除
 func DiscordBotCleanup(discord *discordgo.Session) {
 	err := discord.Close()
 	PrintError("Failed Leave", err)
