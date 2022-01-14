@@ -183,29 +183,33 @@ func ResetPrintBackColor(r int, g int, b int) {
 	fmt.Print("\x1b[39m")
 }
 
-type ExMap *sync.Map
+type ExMap struct {
+	sync.Map
+}
 
 //排他的Mapを入手
 //排他的MAPの型 : sync.Map
-func ExMapGet() *sync.Map {
-	return &sync.Map{}
+func ExMapGet() *ExMap {
+	return &ExMap{}
 }
 
 //排他的Mapに書き込み
-func ExMapWrite(ExMap *sync.Map, key string, value interface{}) {
-	ExMap.Store(key, value)
+func (m *ExMap) ExMapWrite(key string, value interface{}) {
+	m.Store(key, value)
 }
 
 //排他的Mapを読み込み value.(型名)での変換が必要
-func ExMapLord(ExMap *sync.Map, key string, defaultData interface{}) (value interface{}) {
-	value, ok := ExMap.LoadOrStore(key, defaultData)
-	if !ok {
-		PrintError("Failed Get Map Data", fmt.Errorf("unknown map data"))
-	}
+func (m *ExMap) ExMapLord(key string, defaultData interface{}) (value interface{}) {
+	value, _ = m.LoadOrStore(key, defaultData)
+	return
+}
+
+func (m *ExMap) ExMapCheck(key string) (ok bool) {
+	_, ok = m.Load(key)
 	return
 }
 
 //排他的Mapの削除
-func ExMapDelete(ExMap *sync.Map, key string) {
-	ExMap.Delete(key)
+func (m *ExMap) ExMapDelete(key string) {
+	m.Delete(key)
 }
