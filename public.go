@@ -83,26 +83,35 @@ func StringCut(text string, max int) (result string) {
 	return
 }
 
+//ファイルチェック
+func FileCheck(filePath string) bool {
+	_, err := os.Stat(filePath)
+	//ファイルの確認
+	return !os.IsNotExist(err)
+}
+
 //ファイル読み込み 一括
-func ReadAndCreateFileFlash(filePath string) (data []byte, err error) {
+func ReadAndCreateFileFlash(filePath string) (data []byte) {
 	//ファイルがあるか確認
-	_, err = os.Stat(filePath)
+	_, err := os.Stat(filePath)
 	//ファイルがなかったら作成
 	if os.IsNotExist(err) {
 		_, err = os.Create(filePath)
 		if err != nil {
-			return nil, err
+			PrintError("Failed Create File", err)
+			return nil
 		}
 	}
 
 	//読み込み
 	byteData, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return nil, err
+		PrintError("Failed Read File", err)
+		return nil
 	}
 
 	//[]byteをstringに
-	return byteData, nil
+	return byteData
 }
 
 //ファイル書き込み 一括

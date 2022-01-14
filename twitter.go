@@ -3,7 +3,6 @@ package atomicgo
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 
 	"github.com/ChimeraCoder/anaconda"
@@ -21,12 +20,10 @@ type TwitterAPIKeys struct {
 //TwitterAPIKeyを.jsonから入手
 func TwitterAPIkeysGet(path string) (APIKeys TwitterAPIKeys) {
 	// Json読み込み
-	raw, err := ReadAndCreateFileFlash(path)
-	if err != nil {
-		log.Println("failed read APIKeys")
-	}
+	raw := ReadAndCreateFileFlash(path)
 	// 構造体にセット
-	json.Unmarshal(raw, &APIKeys)
+	err := json.Unmarshal(raw, &APIKeys)
+	PrintError("Failed Marshal APIKeys", err)
 	return
 }
 
