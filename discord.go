@@ -92,6 +92,23 @@ func AddReaction(discord *discordgo.Session, channelID string, messageID string,
 	PrintError("Failed reaction add", err)
 }
 
+//ユーザーIDからVCに接続
+func JoinUserVCchannel(discord *discordgo.Session, userID string) (*discordgo.VoiceConnection, error) {
+	vs := findUserVCState(discord, userID)
+	return discord.ChannelVoiceJoin(vs.GuildID, vs.ChannelID, false, true)
+}
+
+func findUserVCState(discord *discordgo.Session, userid string) *discordgo.VoiceState {
+	for _, guild := range discord.State.Guilds {
+		for _, vs := range guild.VoiceStates {
+			if vs.UserID == userid {
+				return vs
+			}
+		}
+	}
+	return nil
+}
+
 //音再生
 func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConnection, filename string) error {
 	if err := vcsession.Speaking(true); err != nil {
