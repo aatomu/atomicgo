@@ -104,8 +104,56 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 	return
 }
 
-//MessageCreate整形
-func ReactionViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReaction) (rData ReactionStruct) {
+//ReactionAdd整形
+func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReactionAdd) (rData ReactionStruct) {
+	var err error
+	rData.GuildID = r.GuildID
+	rData.GuildData, err = discord.Guild(rData.GuildID)
+	if err == nil {
+		rData.GuildName = rData.GuildData.Name
+	} else {
+		rData.GuildName = "DirectMessage"
+	}
+	rData.ChannelID = r.ChannelID
+	rData.ChannelData, _ = discord.Channel(rData.ChannelID)
+	rData.ChannelName = rData.ChannelData.Name
+	rData.UserID = r.UserID
+	rData.UserData, _ = discord.User(r.UserID)
+	rData.UserNum = rData.UserData.Discriminator
+	rData.UserName = rData.UserData.Username
+	rData.Emoji = r.Emoji.Name
+	rData.MessageID = r.MessageID
+	rData.MessageData, err = discord.ChannelMessage(rData.ChannelID, r.MessageID)
+	if err == nil {
+		rData.Message = rData.MessageData.Content
+	}
+
+	//改行あとを削除
+	if strings.Contains(rData.Message, "\n") {
+		replace := regexp.MustCompile(`\n.*`)
+		rData.Message = replace.ReplaceAllString(rData.Message, "..")
+	}
+
+	//文字数を制限
+	nowCount := 0
+	logText := ""
+	for _, word := range strings.Split(rData.Message, "") {
+		if nowCount < 20 {
+			logText = logText + word
+		}
+		if nowCount == 20 {
+			logText = logText + ".."
+		}
+		nowCount++
+	}
+
+	//ログを表示
+	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\" <" + rData.UserName + "#" + rData.UserNum + "> " + rData.Emoji + " => " + logText)
+	return
+}
+
+//ReactionRemove整形
+func ReactionRemoveViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReactionRemove) (rData ReactionStruct) {
 	var err error
 	rData.GuildID = r.GuildID
 	rData.GuildData, err = discord.Guild(rData.GuildID)
