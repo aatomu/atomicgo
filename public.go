@@ -155,7 +155,7 @@ func StopWait() {
 }
 
 //Error表示
-func PrintError(message string, err error) {
+func PrintError(message string, err error) bool {
 	if err != nil {
 		pc, file, line, ok := runtime.Caller(1)
 		fname := filepath.Base(file)
@@ -167,7 +167,9 @@ func PrintError(message string, err error) {
 		fmt.Printf("---[Error]---\nMessage:\"%s\" %s\n", message, position)
 		fmt.Printf("%s\n", err.Error())
 		ResetPrintWordColor()
+		return true
 	}
+	return false
 }
 
 //(log||fmt).Print時の文字の色を変える
