@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -17,12 +19,29 @@ type MessageStruct struct {
 	ChannelID   string
 	ChannelName string
 	ChannelData *discordgo.Channel
-	AuthorID    string
-	AuthorNum   string
-	AuthorName  string
-	AuthorData  *discordgo.User
+	UserID      string
+	UserNum     string
+	UserName    string
+	UserData    *discordgo.User
 	Text        string
 	Files       []string
+}
+
+type ReactionStruct struct {
+	GuildID     string
+	GuildName   string
+	GuildData   *discordgo.Guild
+	ChannelID   string
+	ChannelName string
+	ChannelData *discordgo.Channel
+	UserID      string
+	UserNum     string
+	UserName    string
+	UserData    *discordgo.User
+	MessageData *discordgo.Message
+	MessageID   string
+	Message     string
+	Emoji       string
 }
 
 //Botを起動 Port占有させないため
@@ -62,10 +81,10 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 	mData.ChannelID = m.ChannelID
 	mData.ChannelData, _ = discord.Channel(mData.ChannelID)
 	mData.ChannelName = mData.ChannelData.Name
-	mData.AuthorID = m.Author.ID
-	mData.AuthorNum = m.Author.Discriminator
-	mData.AuthorName = m.Author.Username
-	mData.AuthorData = m.Author
+	mData.UserID = m.Author.ID
+	mData.UserNum = m.Author.Discriminator
+	mData.UserName = m.Author.Username
+	mData.UserData = m.Author
 	mData.Text = m.Content
 	filesURL := ""
 	if len(m.Attachments) > 0 {
@@ -76,7 +95,55 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 		}
 		filesURL = filesURL + "\"  "
 	}
-	log.Print("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.AuthorName + "#" + mData.AuthorNum + ">: " + mData.Text)
+	log.Print("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.UserName + "#" + mData.UserNum + ">: " + mData.Text)
+	return
+}
+
+//MessageCreate整形
+func ReactionViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReaction) (rData ReactionStruct) {
+	var err error
+	rData.GuildID = r.GuildID
+	rData.GuildData, err = discord.Guild(rData.GuildID)
+	if err == nil {
+		rData.GuildName = rData.GuildData.Name
+	} else {
+		rData.GuildName = "DirectMessage"
+	}
+	rData.ChannelID = r.ChannelID
+	rData.ChannelData, _ = discord.Channel(rData.ChannelID)
+	rData.ChannelName = rData.ChannelData.Name
+	rData.UserID = r.UserID
+	rData.UserData, _ = discord.User(r.UserID)
+	rData.UserNum = rData.UserData.Discriminator
+	rData.UserName = rData.UserData.Username
+	rData.Emoji = r.Emoji.Name
+	rData.MessageID = r.MessageID
+	rData.MessageData, err = discord.ChannelMessage(rData.ChannelID, r.MessageID)
+	if err == nil {
+		rData.Message = rData.MessageData.Content
+	}
+
+	//改行あとを削除
+	if strings.Contains(rData.Message, "\n") {
+		replace := regexp.MustCompile(`\n.*`)
+		rData.Message = replace.ReplaceAllString(rData.Message, "..")
+	}
+
+	//文字数を制限
+	nowCount := 0
+	logText := ""
+	for _, word := range strings.Split(rData.Message, "") {
+		if nowCount < 20 {
+			logText = logText + word
+		}
+		if nowCount == 20 {
+			logText = logText + ".."
+		}
+		nowCount++
+	}
+
+	//ログを表示
+	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\" <" + rData.UserName + "#" + rData.UserNum + "> " + rData.Emoji + " => " + logText)
 	return
 }
 
