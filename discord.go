@@ -23,7 +23,9 @@ type MessageStruct struct {
 	UserNum     string
 	UserName    string
 	UserData    *discordgo.User
-	Text        string
+	Message     string
+	MessageID   string
+	MessageData *discordgo.Message
 	Files       []string
 }
 
@@ -38,9 +40,9 @@ type ReactionStruct struct {
 	UserNum     string
 	UserName    string
 	UserData    *discordgo.User
-	MessageData *discordgo.Message
-	MessageID   string
 	Message     string
+	MessageID   string
+	MessageData *discordgo.Message
 	Emoji       string
 }
 
@@ -85,7 +87,9 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 	mData.UserNum = m.Author.Discriminator
 	mData.UserName = m.Author.Username
 	mData.UserData = m.Author
-	mData.Text = m.Content
+	mData.Message = m.Content
+	mData.MessageID = m.ID
+	mData.MessageData, _ = discord.ChannelMessage(mData.ChannelID, mData.MessageID)
 	filesURL := ""
 	if len(m.Attachments) > 0 {
 		filesURL = "Files: \""
@@ -95,7 +99,8 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 		}
 		filesURL = filesURL + "\"  "
 	}
-	log.Print("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.UserName + "#" + mData.UserNum + ">: " + mData.Text)
+
+	log.Print("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.UserName + "#" + mData.UserNum + ">: " + mData.Message)
 	return
 }
 
