@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-//GoのPathを入手
+//GoのPathを入手 最後に/がつく
 func GetGoDir() (goDir string) {
 	_, callerFile, _, _ := runtime.Caller(0)
 	goDir = filepath.Dir(callerFile) + "/"
@@ -54,7 +54,7 @@ func IoWrite(ioIn io.WriteCloser, text string) {
 }
 
 //正規表現チェック
-func StringCheck(text string, check string) bool {
+func StringCheck(text string, check string) (success bool) {
 	return regexp.MustCompile(check).MatchString(text)
 }
 
@@ -91,13 +91,18 @@ func FileCheck(filePath string) bool {
 }
 
 //ディレクトリ作成
-func DirCreate(dirPath string) bool {
-	err := os.Mkdir(dirPath, 0777)
+func CheckAndCreateDir(dirPath string) (success bool) {
+	//フォルダがあるか確認
+	_, err := os.Stat(dirPath)
+	//フォルダがなかったら作成
+	if os.IsNotExist(err) {
+		err = os.Mkdir(dirPath, 0777)
+	}
 	return !PrintError("Failed create directory", err)
 }
 
 //ファイル読み込み 一括
-func ReadAndCreateFileFlash(filePath string) (data []byte) {
+func ReadAndCreateFileFlash(filePath string) (data []byte, success bool) {
 	//ファイルがあるか確認
 	_, err := os.Stat(filePath)
 	//ファイルがなかったら作成
@@ -105,7 +110,7 @@ func ReadAndCreateFileFlash(filePath string) (data []byte) {
 		_, err = os.Create(filePath)
 		if err != nil {
 			PrintError("Failed Create File", err)
-			return nil
+			return nil, false
 		}
 	}
 
@@ -113,15 +118,15 @@ func ReadAndCreateFileFlash(filePath string) (data []byte) {
 	byteData, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		PrintError("Failed Read File", err)
-		return nil
+		return nil, false
 	}
 
 	//[]byteをstringに
-	return byteData
+	return byteData, true
 }
 
 //ファイル書き込み 一括
-func WriteFileFlash(filePath string, data []byte, perm fs.FileMode) error {
+func WriteFileFlash(filePath string, data []byte, perm fs.FileMode) (success error) {
 	return ioutil.WriteFile(filePath, data, perm)
 }
 
@@ -161,7 +166,7 @@ func StopWait() {
 }
 
 //Error表示
-func PrintError(message string, err error) bool {
+func PrintError(message string, err error) (errored bool) {
 	if err != nil {
 		pc, file, line, ok := runtime.Caller(1)
 		fname := filepath.Base(file)

@@ -18,9 +18,12 @@ type TwitterAPIKeys struct {
 }
 
 //TwitterAPIKeyを.jsonから入手
-func TwitterAPIkeysGet(path string) (APIKeys TwitterAPIKeys) {
+func TwitterAPIkeysGet(path string) (APIKeys TwitterAPIKeys, success bool) {
 	// Json読み込み
-	raw := ReadAndCreateFileFlash(path)
+	raw, ok := ReadAndCreateFileFlash(path)
+	if !ok {
+		return TwitterAPIKeys{}, false
+	}
 	// 構造体にセット
 	err := json.Unmarshal(raw, &APIKeys)
 	PrintError("Failed Marshal APIKeys", err)
