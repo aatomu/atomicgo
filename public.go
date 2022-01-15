@@ -90,6 +90,12 @@ func FileCheck(filePath string) bool {
 	return !os.IsNotExist(err)
 }
 
+//ディレクトリ作成
+func DirCreate(dirPath string) bool {
+	err := os.Mkdir(dirPath, 0777)
+	return !PrintError("Failed create directory", err)
+}
+
 //ファイル読み込み 一括
 func ReadAndCreateFileFlash(filePath string) (data []byte) {
 	//ファイルがあるか確認
