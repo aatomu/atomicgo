@@ -46,26 +46,27 @@ type ReactionStruct struct {
 	Emoji       string
 }
 
-//Botを起動 Port占有させないため
-//	defer atomicgo.DiscordBotCleanup(discord)
-//が必要
-func DiscordBotBoot(botToken string) (discord *discordgo.Session) {
+func DiscordBotSetup(botToken string) (discord *discordgo.Session) {
 	//bot起動準備
 	discord, err := discordgo.New()
 	PrintError("Failed get discordStruct", err)
 
-	//token入手
+	//token設定
 	discord.Token = "Bot " + botToken
-
-	//起動
-	err = discord.Open()
-	PrintError("Failed Login", err)
-
 	return
 }
 
+//Botを起動 Port占有させないため
+//	defer atomicgo.DiscordBotCleanup(discord)
+//が必要
+func DiscordBotStart(discord *discordgo.Session) {
+	//起動
+	err := discord.Open()
+	PrintError("Failed Login", err)
+}
+
 //Botの使用していたws/wssを削除
-func DiscordBotCleanup(discord *discordgo.Session) {
+func DiscordBotEnd(discord *discordgo.Session) {
 	err := discord.Close()
 	PrintError("Failed Leave", err)
 }
