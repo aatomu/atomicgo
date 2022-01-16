@@ -57,7 +57,7 @@ func DiscordBotSetup(botToken string) (discord *discordgo.Session) {
 }
 
 //Botを起動 Port占有させないため
-//	defer atomicgo.DiscordBotCleanup(discord)
+//	defer atomicgo.DiscordBotEnd(discord)
 //が必要
 func DiscordBotStart(discord *discordgo.Session) {
 	//起動
