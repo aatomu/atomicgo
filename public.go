@@ -200,9 +200,23 @@ func SetPrintBackColor(r int, g int, b int) {
 	fmt.Print("\x1b[48;2;" + fmt.Sprint(r) + ";" + fmt.Sprint(g) + ";" + fmt.Sprint(b) + "m")
 }
 
-func ResetPrintBackColor(r int, g int, b int) {
+func ResetPrintBackColor() {
 	//背景色リセット
 	fmt.Print("\x1b[39m")
+}
+
+func ConvBtoI(b []byte) int {
+	n := 0
+	length := len(b)
+	for i := 0; i < length; i++ {
+		m := 1
+		for j := 0; j < length-i-1; j++ {
+			m = m * 256
+		}
+		m = m * int(b[i])
+		n = n + m
+	}
+	return n
 }
 
 type ExMap struct {
