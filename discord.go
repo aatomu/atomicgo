@@ -294,18 +294,19 @@ func HaveRole(discord *discordgo.Session, guildID string, userID string, checkRo
 }
 
 //Botのステータスアップデート
-func BotStateUpdate(discord *discordgo.Session, gameName string) {
+func BotStateUpdate(discord *discordgo.Session, gameName string, Type int) (success bool) {
 	state := discordgo.UpdateStatusData{
 		Activities: []*discordgo.Activity{
 			{
 				Name: gameName,
-				Type: 0,
+				Type: discordgo.ActivityType(Type),
 			},
 		},
 		AFK:    false,
 		Status: "online",
 	}
-	discord.UpdateStatusComplex(state)
+	err := discord.UpdateStatusComplex(state)
+	return !PrintError("Failed Update State", err)
 }
 
 //スラッシュコマンド作成
@@ -320,10 +321,7 @@ func SlashCommandCreate(discord *discordgo.Session, guildID string, commands []*
 }
 
 //スラッシュコマンドレスポンス送信
-func SlashCommandResponse(discord *discordgo.Session, interaction *discordgo.Interaction, resp *discordgo.InteractionResponse) error {
+func SlashCommandResponse(discord *discordgo.Session, interaction *discordgo.Interaction, resp *discordgo.InteractionResponse) (success bool) {
 	err := discord.InteractionRespond(interaction, resp)
-	if err != nil {
-		return err
-	}
-	return nil
+	return !PrintError("Failed Return Interaction Response", err)
 }

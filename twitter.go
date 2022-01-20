@@ -24,9 +24,13 @@ func TwitterAPIkeysGet(path string) (APIKeys TwitterAPIKeys, success bool) {
 	if !ok {
 		return TwitterAPIKeys{}, false
 	}
+
 	// 構造体にセット
 	err := json.Unmarshal(raw, &APIKeys)
-	PrintError("Failed Marshal APIKeys", err)
+	if PrintError("Failed Marshal APIKeys", err) {
+		return TwitterAPIKeys{}, false
+	}
+
 	return APIKeys, true
 }
 

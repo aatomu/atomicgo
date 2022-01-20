@@ -30,14 +30,11 @@ func MoveWorkDir(dirPath string) {
 	os.Chdir(dirPath)
 }
 
-//プログラムの実行 実行終了待機 Errを返却
-func RunCommand(command string) (err error) {
-	return exec.Command("/bin/bash", "-c", command).Run()
-}
-
 //プログラムの実行準備 IOを返却 io.Start()で実行
-func ExecuteCommand(command string) (io *exec.Cmd) {
-	return exec.Command("/bin/bash", "-c", command)
+//Linuxなら/bin/bash,-c,<Command>を
+//WinならC:\Windows\System32\cmd.exe,/c,<Command>
+func ExecuteCommand(pront, option, command string) (io *exec.Cmd) {
+	return exec.Command(pront, option, command)
 }
 
 //IOを分けて返却
@@ -84,10 +81,14 @@ func StringCut(text string, max int) (result string) {
 }
 
 //ファイルチェック
-func FileCheck(filePath string) bool {
+func CheckAndCrateFile(filePath string) bool {
 	_, err := os.Stat(filePath)
 	//ファイルの確認
-	return !os.IsNotExist(err)
+	if os.IsNotExist(err) {
+		_, err = os.Create(filePath)
+		return !PrintError("Failed Create Dir", err)
+	}
+	return !PrintError("Failed Check File", err)
 }
 
 //ディレクトリ作成
@@ -97,21 +98,16 @@ func CheckAndCreateDir(dirPath string) (success bool) {
 	//フォルダがなかったら作成
 	if os.IsNotExist(err) {
 		err = os.Mkdir(dirPath, 0777)
+		return !PrintError("Failed Crate Directory", err)
 	}
-	return !PrintError("Failed create directory", err)
+	return !PrintError("Failed Check Directory", err)
 }
 
 //ファイル読み込み 一括
 func ReadAndCreateFileFlash(filePath string) (data []byte, success bool) {
 	//ファイルがあるか確認
-	_, err := os.Stat(filePath)
-	//ファイルがなかったら作成
-	if os.IsNotExist(err) {
-		_, err = os.Create(filePath)
-		if err != nil {
-			PrintError("Failed Create File", err)
-			return nil, false
-		}
+	if !CheckAndCrateFile(filePath) {
+		return nil, false
 	}
 
 	//読み込み
@@ -121,13 +117,13 @@ func ReadAndCreateFileFlash(filePath string) (data []byte, success bool) {
 		return nil, false
 	}
 
-	//[]byteをstringに
 	return byteData, true
 }
 
 //ファイル書き込み 一括
-func WriteFileFlash(filePath string, data []byte, perm fs.FileMode) (success error) {
-	return ioutil.WriteFile(filePath, data, perm)
+func WriteFileFlash(filePath string, data []byte, perm fs.FileMode) (success bool) {
+	err := ioutil.WriteFile(filePath, data, perm)
+	return !PrintError("Failed Write File Flash", err)
 }
 
 //ファイル一覧
@@ -235,8 +231,8 @@ func (m *ExMap) ExMapWrite(key string, value interface{}) {
 }
 
 //排他的Mapを読み込み value.(型名)での変換が必要
-func (m *ExMap) ExMapLord(key string, defaultData interface{}) (value interface{}) {
-	value, _ = m.LoadOrStore(key, defaultData)
+func (m *ExMap) ExMapLord(key string, defaultData interface{}) (value interface{}, loaded bool) {
+	value, loaded = m.LoadOrStore(key, defaultData)
 	return
 }
 
