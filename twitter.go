@@ -35,7 +35,7 @@ func TwitterAPISet(APIKeys TwitterAPIKeys) (API *anaconda.TwitterApi) {
 	return anaconda.NewTwitterApiWithCredentials(APIKeys.AccessToken, APIKeys.AccessTokenSecret, APIKeys.APIKey, APIKeys.APISecret)
 }
 
-func TwitterSearch(APIKeys TwitterAPIKeys, searchLimit int, keyWord string) (tweets []anaconda.Tweet) {
+func TwitterSearch(APIKeys TwitterAPIKeys, searchLimit int, keyWord string) (result anaconda.SearchResponse, ok bool) {
 	// 認証
 	api := TwitterAPISet(APIKeys)
 
@@ -44,7 +44,6 @@ func TwitterSearch(APIKeys TwitterAPIKeys, searchLimit int, keyWord string) (twe
 	v.Set("count", fmt.Sprint(searchLimit))
 
 	//検索
-	searchResult, _ := api.GetSearch(keyWord, v)
-	tweets = searchResult.Statuses
-	return
+	result, err := api.GetSearch(keyWord, v)
+	return result, !PrintError("Failed Search", err)
 }
