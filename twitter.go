@@ -27,7 +27,7 @@ func TwitterAPIkeysGet(path string) (APIKeys TwitterAPIKeys, success bool) {
 	// 構造体にセット
 	err := json.Unmarshal(raw, &APIKeys)
 	PrintError("Failed Marshal APIKeys", err)
-	return
+	return APIKeys, true
 }
 
 //TwitterAPIに設定
