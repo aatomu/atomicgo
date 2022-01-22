@@ -198,7 +198,7 @@ func SetPrintBackColor(r int, g int, b int) {
 
 func ResetPrintBackColor() {
 	//背景色リセット
-	fmt.Print("\x1b[39m")
+	fmt.Print("\x1b[49m")
 }
 
 func ConvBtoI(b []byte) int {
