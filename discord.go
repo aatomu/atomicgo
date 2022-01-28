@@ -149,7 +149,7 @@ func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReac
 	}
 
 	//ログを表示
-	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\"  <" + rData.UserName + "#" + rData.UserNum + "> " + rData.Emoji + " => " + logText)
+	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\"  <" + rData.UserName + "#" + rData.UserNum + "> +" + rData.Emoji + " => <" + rData.MessageData.Author.Username + "#" + rData.MessageData.Author.Discriminator + "> " + logText)
 	return
 }
 
@@ -197,7 +197,7 @@ func ReactionRemoveViewAndEdit(discord *discordgo.Session, r *discordgo.MessageR
 	}
 
 	//ログを表示
-	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\"  <" + rData.UserName + "#" + rData.UserNum + "> " + rData.Emoji + " => " + logText)
+	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\"  <" + rData.UserName + "#" + rData.UserNum + "> +" + rData.Emoji + " => <" + rData.MessageData.Author.Username + "#" + rData.MessageData.Author.Discriminator + "> " + logText)
 	return
 }
 
