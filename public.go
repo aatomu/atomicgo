@@ -231,8 +231,8 @@ func (m *ExMap) ExMapWrite(key string, value interface{}) {
 }
 
 //排他的Mapを読み込み value.(型名)での変換が必要
-func (m *ExMap) ExMapLord(key string, defaultData interface{}) (value interface{}, loaded bool) {
-	value, loaded = m.LoadOrStore(key, defaultData)
+func (m *ExMap) ExMapLoad(key string, defaultData interface{}) (value interface{}, load bool) {
+	value, load = m.LoadOrStore(key, defaultData)
 	return
 }
 
