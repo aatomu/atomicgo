@@ -233,7 +233,8 @@ func (m *ExMap) ExMapWrite(key string, value interface{}) {
 //排他的Mapを読み込み value.(型名)での変換が必要
 func (m *ExMap) ExMapLoad(key string, defaultData interface{}) (value interface{}, write bool) {
 	value, loaded := m.LoadOrStore(key, defaultData)
-	return value, !loaded
+	write = !loaded
+	return
 }
 
 func (m *ExMap) ExMapCheck(key string) (ok bool) {
