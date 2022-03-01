@@ -48,11 +48,8 @@ type ReactionStruct struct {
 
 func DiscordBotSetup(botToken string) (discord *discordgo.Session) {
 	//bot起動準備
-	discord, err := discordgo.New()
+	discord, err := discordgo.New("Bot " + botToken)
 	PrintError("Failed get discordStruct", err)
-
-	//token設定
-	discord.Token = "Bot " + botToken
 	return
 }
 
