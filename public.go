@@ -92,12 +92,12 @@ func CheckAndCrateFile(filePath string) bool {
 }
 
 //ディレクトリ作成
-func CheckAndCreateDir(dirPath string) (success bool) {
+func CheckAndCreateDir(dirPath string, perm fs.FileMode) (success bool) {
 	//フォルダがあるか確認
 	_, err := os.Stat(dirPath)
 	//フォルダがなかったら作成
 	if os.IsNotExist(err) {
-		err = os.Mkdir(dirPath, 0777)
+		err = os.Mkdir(dirPath, perm)
 		return !PrintError("Failed Crate Directory", err)
 	}
 	return !PrintError("Failed Check Directory", err)
