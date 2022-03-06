@@ -85,7 +85,7 @@ func StringCut(text string, max int) (result string) {
 func CheckFile(filePath string) (ok bool) {
 	// filePathからアクセスできるかチェック
 	_, err := os.Stat(filePath)
-	return !PrintError("Failed Check File", err)
+	return err == nil
 }
 
 // ファイル作成
