@@ -20,7 +20,10 @@ type TwitterAPIKeys struct {
 //TwitterAPIKeyを.jsonから入手
 func TwitterAPIkeysGet(path string) (APIKeys TwitterAPIKeys, success bool) {
 	// Json読み込み
-	raw, ok := ReadAndCreateFileFlash(path)
+	if !CheckFile(path) {
+		return TwitterAPIKeys{}, false
+	}
+	raw, ok := ReadFile(path)
 	if !ok {
 		return TwitterAPIKeys{}, false
 	}
