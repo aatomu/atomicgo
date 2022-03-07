@@ -120,12 +120,12 @@ func WriteFileFlash(filePath string, data []byte, perm fs.FileMode) (success boo
 func WriteFileBaffer(filePath string, data []byte, perm fs.FileMode) (success bool) {
 	// ファイルを開く
 	file, err := os.Open(filePath)
-	// 自動で閉じる
-	defer file.Close()
 
 	if PrintError("Failed Open File", err) {
 		return false
 	}
+	// 自動で閉じる
+	defer file.Close()
 
 	// 書き込み
 	fileWriter := bufio.NewWriter(file)
