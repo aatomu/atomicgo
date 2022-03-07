@@ -178,15 +178,24 @@ func StopWait() {
 // Error表示
 func PrintError(message string, err error) (errored bool) {
 	if err != nil {
-		pc, file, line, ok := runtime.Caller(1)
-		fname := filepath.Base(file)
-		position := ""
-		if ok {
-			position = fmt.Sprintf("%s:%d %s()", fname, line, runtime.FuncForPC(pc).Name())
+		trackBack := ""
+		// 原因を特定
+		for i := 1; true; i++ {
+			pc, file, line, _ := runtime.Caller(i)
+			trackBack += fmt.Sprintf("> %s:%d %s()\n", filepath.Base(file), line, StringReplace(runtime.FuncForPC(pc).Name(), "", "^.*/"))
+			_, _, _, ok := runtime.Caller(i + 3)
+			if !ok {
+				break
+			}
+			// インデント
+			for j := 0; j < i; j++ {
+				trackBack += "  "
+			}
 		}
+		//表示
 		SetPrintWordColor(255, 0, 0)
-		fmt.Printf("---[Error]---\nMessage:\"%s\" %s\n", message, position)
-		fmt.Printf("%s\n", err.Error())
+		fmt.Printf("[Error] Message:\"%s\" Error:\"%s\"\n", message, err.Error())
+		fmt.Printf("%s", trackBack)
 		ResetPrintWordColor()
 		return true
 	}
