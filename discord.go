@@ -46,23 +46,6 @@ type ReactionStruct struct {
 	Emoji       string
 }
 
-type InteractionStruct struct {
-	GuildID     string
-	GuildName   string
-	GuildData   *discordgo.Guild
-	ChannelID   string
-	ChannelName string
-	ChannelData *discordgo.Channel
-	UserID      string
-	UserNum     string
-	UserName    string
-	UserData    *discordgo.User
-	Type        discordgo.InteractionType
-	Command     discordgo.ApplicationCommandInteractionData
-	Component   discordgo.MessageComponentInteractionData
-	Submit      discordgo.ModalSubmitInteractionData
-}
-
 func DiscordBotSetup(botToken string) (discord *discordgo.Session) {
 	//bot起動準備
 	discord, err := discordgo.New("Bot " + botToken)
@@ -215,58 +198,16 @@ func ReactionRemoveViewAndEdit(discord *discordgo.Session, r *discordgo.MessageR
 	return
 }
 
-// InteractionCreate 整形
-func InteractionViewAndEdit(discord *discordgo.Session, i *discordgo.InteractionCreate) (iData InteractionStruct) {
-	var err error
-	cmdData := i.Interaction
-	iData.GuildID = cmdData.GuildID
-	iData.GuildData, err = discord.Guild(iData.GuildID)
-	if err == nil {
-		iData.GuildName = iData.GuildData.Name
-	} else {
-		iData.GuildName = "DirectMessage"
-	}
-	iData.ChannelID = cmdData.ChannelID
-	iData.ChannelData, _ = discord.Channel(iData.ChannelID)
-	iData.ChannelName = iData.ChannelData.Name
-	// DMならばUser じゃ無ければMember
-	if cmdData.User != nil {
-		iData.UserNum = cmdData.User.Discriminator
-		iData.UserName = cmdData.User.Username
-		iData.UserData = cmdData.User
-	} else {
-		iData.UserNum = cmdData.Member.User.Discriminator
-		iData.UserName = cmdData.Member.User.Username
-		iData.UserData = cmdData.Member.User
-	}
-	iData.Type = cmdData.Type
-	switch iData.Type {
-	case discordgo.InteractionApplicationCommand:
-		iData.Command = cmdData.ApplicationCommandData()
-		//表示
-		log.Print("Guild:\"" + iData.GuildName + "\"  Channel:\"" + iData.ChannelName + "\"  [" + iData.UserName + "#" + iData.UserNum + "] Slash /" + iData.Command.Name)
-	case discordgo.InteractionMessageComponent:
-		iData.Component = cmdData.MessageComponentData()
-		//表示
-		log.Print("Guild:\"" + iData.GuildName + "\"  Channel:\"" + iData.ChannelName + "\"  [" + iData.UserName + "#" + iData.UserNum + "] Component ID:" + iData.Component.CustomID)
-	case discordgo.InteractionModalSubmit:
-		iData.Submit = cmdData.ModalSubmitData()
-		//表示
-		log.Print("Guild:\"" + iData.GuildName + "\"  Channel:\"" + iData.ChannelName + "\"  [" + iData.UserName + "#" + iData.UserNum + "] Submit ID:" + iData.Submit.CustomID)
-	}
-	return
-}
-
 //Embed送信
 func SendEmbed(discord *discordgo.Session, channelID string, embed *discordgo.MessageEmbed) {
 	_, err := discord.ChannelMessageSendEmbed(channelID, embed)
-	PrintError("send Embed", err)
+	PrintError("Failed Send Embed", err)
 }
 
 //リアクション追加用
 func AddReaction(discord *discordgo.Session, channelID string, messageID string, reaction string) {
 	err := discord.MessageReactionAdd(channelID, messageID, reaction)
-	PrintError("Failed reaction add", err)
+	PrintError("Failed Reaction add", err)
 }
 
 //ユーザーIDからVCに接続
