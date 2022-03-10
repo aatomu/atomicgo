@@ -15,7 +15,7 @@ func Eval(in string) (ans string, ok bool) {
 		return "", false
 	}
 	// 0-9 +-*/以外のが入ってたらerror
-	if !regexp.MustCompile(`^.*[0-9 +\-*/()]$`).MatchString(in) {
+	if !regexp.MustCompile(`^.*[0-9\. +\-*/()]$`).MatchString(in) {
 		return "", false
 	}
 	// 演算用変数 a^b a*b a/b a+b a-b
@@ -132,33 +132,33 @@ func ArrLast(arr []string) int {
 func StrPow(a, b string) string {
 	powA, _ := strconv.ParseFloat(a, 64)
 	powB, _ := strconv.ParseFloat(b, 64)
-	return fmt.Sprint(math.Pow(powA, powB))
+	return fmt.Sprintf("%.15f", math.Pow(powA, powB))
 }
 
 // 乗算
 func StrMul(a, b string) string {
 	powA, _ := strconv.ParseFloat(a, 64)
 	powB, _ := strconv.ParseFloat(b, 64)
-	return fmt.Sprint(powA * powB)
+	return fmt.Sprintf("%.15f", powA*powB)
 }
 
 // 除算
 func StrDiv(a, b string) string {
 	powA, _ := strconv.ParseFloat(a, 64)
 	powB, _ := strconv.ParseFloat(b, 64)
-	return fmt.Sprint(powA / powB)
+	return fmt.Sprintf("%.15f", powA/powB)
 }
 
 // 和算
 func StrSum(a, b string) string {
 	powA, _ := strconv.ParseFloat(a, 64)
 	powB, _ := strconv.ParseFloat(b, 64)
-	return fmt.Sprint(powA + powB)
+	return fmt.Sprintf("%.15f", powA+powB)
 }
 
 // 除算
 func StrDec(a, b string) string {
 	powA, _ := strconv.ParseFloat(a, 64)
 	powB, _ := strconv.ParseFloat(b, 64)
-	return fmt.Sprint(powA - powB)
+	return fmt.Sprintf("%.15f", powA-powB)
 }
