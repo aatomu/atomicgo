@@ -60,11 +60,11 @@ func Eval(in string) (ans string, ok bool) {
 		Ignore string
 	}
 	mathTypes := []CalcData{
-		{Func: StrPow, Str: "^", Ignore: `[+\-*/]`}, // 累乗
-		{Func: StrMul, Str: "*", Ignore: `[+\-/]`},  // 乗算
-		{Func: StrDiv, Str: "/", Ignore: `[+\-]`},   // 除算
-		{Func: StrSum, Str: "+", Ignore: `[\-]`},    // 和算
-		{Func: StrDec, Str: "-", Ignore: `[\-]`},    // 減算
+		{Func: StrPow, Str: "^", Ignore: `[\-+/*]`}, // 累乗
+		{Func: StrMul, Str: "*", Ignore: `[\-+/ ]`}, // 乗算
+		{Func: StrDiv, Str: "/", Ignore: `[\-+  ]`}, // 除算
+		{Func: StrSum, Str: "+", Ignore: `[\-   ]`}, // 和算
+		{Func: StrDec, Str: "-", Ignore: `[     ]`}, // 減算
 	}
 	// 演算
 	for _, mathData := range mathTypes {
