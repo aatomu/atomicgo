@@ -76,7 +76,7 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 	if err == nil {
 		mData.GuildName = mData.GuildData.Name
 	} else {
-		mData.GuildName = "DirectMessage"
+		mData.GuildName = "Unknown"
 	}
 	mData.ChannelID = m.ChannelID
 	mData.ChannelData, err = discord.Channel(mData.ChannelID)
@@ -114,7 +114,7 @@ func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReac
 	if err == nil {
 		rData.GuildName = rData.GuildData.Name
 	} else {
-		rData.GuildName = "DirectMessage"
+		rData.GuildName = "Unknown"
 	}
 	rData.ChannelID = r.ChannelID
 	rData.ChannelData, err = discord.Channel(rData.ChannelID)
@@ -171,7 +171,7 @@ func ReactionRemoveViewAndEdit(discord *discordgo.Session, r *discordgo.MessageR
 	if err == nil {
 		rData.GuildName = rData.GuildData.Name
 	} else {
-		rData.GuildName = "DirectMessage"
+		rData.GuildName = "Unknown"
 	}
 	rData.ChannelID = r.ChannelID
 	rData.ChannelData, err = discord.Channel(rData.ChannelID)
