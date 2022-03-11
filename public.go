@@ -140,31 +140,24 @@ func WriteFileBaffer(filePath string, data []byte, perm fs.FileMode) (success bo
 }
 
 // ファイル一覧
-func FileList(dir string) (list string, faild bool) {
-	//ディレクトリ読み取り
+func FileList(dir string) (list []string, success bool) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		PrintError("Failed read directory data", err)
-		return "", false
+		return []string{}, false
 	}
 
-	//一覧を保存
 	for _, file := range files {
-		//ディレクトリなら一個下でやる
 		if file.IsDir() {
-			data, ok := FileList(dir + "/" + file.Name())
+			result, ok := FileList(filepath.Join(dir, file.Name()))
+			list = append(list, result...)
 			if !ok {
-				PrintError("Failed func fileList()", err)
-				return "", false
+				return list, false
 			}
-			//追加
-			list = list + data
 			continue
 		}
-		list = list + dir + "/" + file.Name() + "\n"
+		list = append(list, filepath.Join(dir, file.Name()))
 	}
 
-	list = strings.ReplaceAll(list, "//", "/")
 	return list, true
 }
 
