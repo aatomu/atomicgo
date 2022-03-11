@@ -79,8 +79,12 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 		mData.GuildName = "DirectMessage"
 	}
 	mData.ChannelID = m.ChannelID
-	mData.ChannelData, _ = discord.Channel(mData.ChannelID)
-	mData.ChannelName = mData.ChannelData.Name
+	mData.ChannelData, err = discord.Channel(mData.ChannelID)
+	if err == nil {
+		mData.ChannelName = mData.ChannelData.Name
+	} else {
+		mData.ChannelName = "Unknown"
+	}
 	mData.UserID = m.Author.ID
 	mData.UserNum = m.Author.Discriminator
 	mData.UserName = m.Author.Username
@@ -113,12 +117,21 @@ func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReac
 		rData.GuildName = "DirectMessage"
 	}
 	rData.ChannelID = r.ChannelID
-	rData.ChannelData, _ = discord.Channel(rData.ChannelID)
-	rData.ChannelName = rData.ChannelData.Name
+	rData.ChannelData, err = discord.Channel(rData.ChannelID)
+	if err == nil {
+		rData.ChannelName = rData.ChannelData.Name
+	} else {
+		rData.ChannelName = "Unknown"
+	}
 	rData.UserID = r.UserID
-	rData.UserData, _ = discord.User(r.UserID)
-	rData.UserNum = rData.UserData.Discriminator
-	rData.UserName = rData.UserData.Username
+	rData.UserData, err = discord.User(r.UserID)
+	if err == nil {
+		rData.UserNum = rData.UserData.Discriminator
+		rData.UserName = rData.UserData.Username
+	} else {
+		rData.UserNum = "Unknown"
+		rData.UserName = "0000"
+	}
 	rData.Emoji = r.Emoji.Name
 	rData.MessageID = r.MessageID
 	rData.MessageData, err = discord.ChannelMessage(rData.ChannelID, r.MessageID)
@@ -161,10 +174,21 @@ func ReactionRemoveViewAndEdit(discord *discordgo.Session, r *discordgo.MessageR
 		rData.GuildName = "DirectMessage"
 	}
 	rData.ChannelID = r.ChannelID
-	rData.ChannelData, _ = discord.Channel(rData.ChannelID)
-	rData.ChannelName = rData.ChannelData.Name
+	rData.ChannelData, err = discord.Channel(rData.ChannelID)
+	if err == nil {
+		rData.ChannelName = rData.ChannelData.Name
+	} else {
+		rData.ChannelName = "Unknown"
+	}
 	rData.UserID = r.UserID
-	rData.UserData, _ = discord.User(r.UserID)
+	rData.UserData, err = discord.User(r.UserID)
+	if err == nil {
+		rData.UserNum = rData.UserData.Discriminator
+		rData.UserName = rData.UserData.Username
+	} else {
+		rData.UserNum = "Unknown"
+		rData.UserName = "0000"
+	}
 	rData.UserNum = rData.UserData.Discriminator
 	rData.UserName = rData.UserData.Username
 	rData.Emoji = r.Emoji.Name
