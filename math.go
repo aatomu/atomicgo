@@ -72,7 +72,7 @@ func Eval(in string) (ans string, ok bool) {
 			switch shouldMath {
 			case false:
 				switch {
-				case regexp.MustCompile(mathData.Ignore).MatchString(s):
+				case StringCheck(s, mathData.Ignore):
 					// 保存
 					editEquation += valueA + s
 					// リセット
@@ -87,7 +87,12 @@ func Eval(in string) (ans string, ok bool) {
 				}
 			case true:
 				switch {
-				case regexp.MustCompile(mathData.Ignore).MatchString(s):
+				case StringCheck(s, mathData.Ignore):
+					// 特殊判定 n++m n--m n^-m など
+					if valueB == "" && StringCheck(s, `[+\-]`) {
+						valueB += s
+						continue
+					}
 					// 演算 & 保存
 					editEquation += mathData.Func(valueA, valueB) + s
 					// リセット
