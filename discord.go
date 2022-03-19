@@ -237,7 +237,13 @@ func AddReaction(discord *discordgo.Session, channelID string, messageID string,
 //ユーザーIDからVCに接続
 func JoinUserVCchannel(discord *discordgo.Session, userID string) (*discordgo.VoiceConnection, error) {
 	vs := UserVCState(discord, userID)
-	return discord.ChannelVoiceJoin(vs.GuildID, vs.ChannelID, false, true)
+	GuildID := ""
+	ChannelID := ""
+	if vs != nil {
+		GuildID = vs.GuildID
+		ChannelID = vs.ChannelID
+	}
+	return discord.ChannelVoiceJoin(GuildID, ChannelID, false, true)
 }
 
 func UserVCState(discord *discordgo.Session, userid string) *discordgo.VoiceState {
