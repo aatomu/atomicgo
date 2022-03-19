@@ -119,7 +119,7 @@ func WriteFileFlash(filePath string, data []byte, perm fs.FileMode) (success boo
 // ファイル書き込み バッファーあり
 func WriteFileBaffer(filePath string, data []byte, perm fs.FileMode) (success bool) {
 	// ファイルを開く
-	file, err := os.Open(filePath)
+	file, err := os.Create(filePath)
 
 	if PrintError("Failed Open File", err) {
 		return false
