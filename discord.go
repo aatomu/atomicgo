@@ -255,7 +255,7 @@ func UserVCState(discord *discordgo.Session, userid string) *discordgo.VoiceStat
 }
 
 //音再生
-func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConnection, filename string) error {
+func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConnection, filename string, isBreak chan bool) error {
 	if err := vcsession.Speaking(true); err != nil {
 		return err
 	}
@@ -286,6 +286,13 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 		case <-ticker.C:
 			playbackPosition := stream.PlaybackPosition()
 			log.Println("Sending Now... : Playback:", playbackPosition)
+		case <-isBreak:
+			encodeSession.Cleanup()
+			_, err := stream.Finished()
+			if err != nil {
+				PrintError("Failed stop music", err)
+			}
+			return nil
 		}
 	}
 }
