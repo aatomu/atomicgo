@@ -15,7 +15,8 @@ func Encrypt(key, text string) (cipherText string, cipherBytes []byte, err error
 
 	// keyをHash化 (強制的にAES-256化)
 	hashBytes := []byte(Hash(key, HashSha256))
-	keyBytes := hashBytes[:32]
+	shift := (int(hashBytes[0]) + 32) % len(hashBytes)
+	keyBytes := hashBytes[shift : shift+32]
 
 	// AES 暗号化block作成
 	block, err := aes.NewCipher(keyBytes)
@@ -36,7 +37,8 @@ func Encrypt(key, text string) (cipherText string, cipherBytes []byte, err error
 func Decrpt(key, text string, cipherBytes []byte) (cipherText string, err error) {
 	// keyをHash化 (強制的にAES-256化)
 	hashBytes := []byte(Hash(key, HashSha256))
-	keyBytes := hashBytes[:32]
+	shift := (int(hashBytes[0]) + 32) % len(hashBytes)
+	keyBytes := hashBytes[shift : shift+32]
 
 	// AES 暗号化block作成
 	block, err := aes.NewCipher(keyBytes)
