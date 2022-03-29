@@ -11,14 +11,11 @@ import (
 
 func Encrypt(key, text string) (cipherText string, cipherBytes []byte, err error) {
 	// strをByteに
-	keyBytes := []byte(key)
 	plainBytes := []byte(text)
 
-	// keyの長さ確認
-	if len(keyBytes) != 16 && len(keyBytes) != 24 && len(keyBytes) != 32 {
-		err = fmt.Errorf("invaild key size %d, request 16,24 or 32 byte", len(keyBytes))
-		return
-	}
+	// keyをHash化 (強制的にAES-256化)
+	hashBytes := []byte(Hash(key, HashSha256))
+	keyBytes := hashBytes[:32]
 
 	// AES 暗号化block作成
 	block, err := aes.NewCipher(keyBytes)
@@ -27,7 +24,6 @@ func Encrypt(key, text string) (cipherText string, cipherBytes []byte, err error
 	}
 
 	// IV を作成
-	hashBytes := []byte(Hash(key, HashSha256))
 	textBytes := append(hashBytes[:aes.BlockSize], plainBytes...)
 	iv := textBytes[:aes.BlockSize]
 
@@ -38,13 +34,9 @@ func Encrypt(key, text string) (cipherText string, cipherBytes []byte, err error
 }
 
 func Decrpt(key, text string, cipherBytes []byte) (cipherText string, err error) {
-	// strをByteに
-	keyBytes := []byte(key)
-
-	// keyの長さ確認
-	if len(keyBytes) != 16 && len(keyBytes) != 24 && len(keyBytes) != 32 {
-		return "", fmt.Errorf("invaild key size %d, request 16,24 or 32 byte", len(keyBytes))
-	}
+	// keyをHash化 (強制的にAES-256化)
+	hashBytes := []byte(Hash(key, HashSha256))
+	keyBytes := hashBytes[:32]
 
 	// AES 暗号化block作成
 	block, err := aes.NewCipher(keyBytes)
