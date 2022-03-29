@@ -56,7 +56,6 @@ func Decrpt(key, text string, cipherBytes []byte) (cipherText string, err error)
 	decryptedText := make([]byte, len(cipherBytes[aes.BlockSize:]))
 	decryptStream := cipher.NewCTR(block, cipherBytes[:aes.BlockSize])
 	decryptStream.XORKeyStream(decryptedText, cipherBytes[aes.BlockSize:])
-	fmt.Printf("Decrypted text: %s\n", decryptedText)
 	return string(decryptedText), nil
 }
 
