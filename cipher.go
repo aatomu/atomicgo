@@ -3,20 +3,19 @@ package atomicgo
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
+	"io"
 )
 
-func Encrypt(key, text string) (cipherText string, cipherBytes []byte, err error) {
+func Encrypt(key, text string) (cipherText string, err error) {
 	// strをByteに
 	plainBytes := []byte(text)
-
-	// keyをHash化 (強制的にAES-256化)
 	hashBytes := []byte(Hash(key, HashSha256))
-	shift := (int(hashBytes[0]) + 32) % len(hashBytes)
-	keyBytes := hashBytes[shift : shift+32]
+	keyBytes := hashBytes[:32]
 
 	// AES 暗号化block作成
 	block, err := aes.NewCipher(keyBytes)
@@ -25,20 +24,24 @@ func Encrypt(key, text string) (cipherText string, cipherBytes []byte, err error
 	}
 
 	// IV を作成
-	textBytes := append(hashBytes[:aes.BlockSize], plainBytes...)
+	textBytes := make([]byte, aes.BlockSize+len(plainBytes))
 	iv := textBytes[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		fmt.Printf("err: %s\n", err)
+	}
 
 	// Encrypt
 	encryptStream := cipher.NewCTR(block, iv)
 	encryptStream.XORKeyStream(textBytes[aes.BlockSize:], plainBytes)
-	return fmt.Sprintf("%x", textBytes), textBytes, nil
+	return fmt.Sprintf("%x", textBytes), nil
 }
 
-func Decrpt(key, text string, cipherBytes []byte) (cipherText string, err error) {
-	// keyをHash化 (強制的にAES-256化)
+func Decrpt(key, cipherText string) (plainText string, err error) {
+	// strをByteに
 	hashBytes := []byte(Hash(key, HashSha256))
-	shift := (int(hashBytes[0]) + 32) % len(hashBytes)
-	keyBytes := hashBytes[shift : shift+32]
+	keyBytes := hashBytes[:32]
+	var cipherBytes []byte
+	fmt.Sscanf(cipherText, "%x", &cipherBytes)
 
 	// AES 暗号化block作成
 	block, err := aes.NewCipher(keyBytes)
