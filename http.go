@@ -24,6 +24,7 @@ const (
 	Get  HttpReqestType = "GET"
 )
 
+// 複数headerを送る際は map["A"] = "a;b;c"
 func HttpReqest(method HttpReqestType, url string, body string, headers map[string]string) (resp *http.Response, err error) {
 	// リクエストの準備
 	req, _ := http.NewRequest(string(method), url, bytes.NewBuffer([]byte(body)))
