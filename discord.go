@@ -106,6 +106,44 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 	return
 }
 
+//MessageCreate整形
+func MessageParse(discord *discordgo.Session, m *discordgo.MessageCreate) (text string) {
+	var err error
+	var mData MessageStruct
+	mData.GuildID = m.GuildID
+	mData.GuildData, err = discord.Guild(mData.GuildID)
+	if err == nil {
+		mData.GuildName = mData.GuildData.Name
+	} else {
+		mData.GuildName = "Unknown"
+	}
+	mData.ChannelID = m.ChannelID
+	mData.ChannelData, err = discord.Channel(mData.ChannelID)
+	if err == nil {
+		mData.ChannelName = mData.ChannelData.Name
+	} else {
+		mData.ChannelName = "Unknown"
+	}
+	mData.UserID = m.Author.ID
+	mData.UserNum = m.Author.Discriminator
+	mData.UserName = m.Author.Username
+	mData.UserData = m.Author
+	mData.Message = m.Content
+	mData.MessageID = m.ID
+	mData.MessageData, _ = discord.ChannelMessage(mData.ChannelID, mData.MessageID)
+	filesURL := ""
+	if len(m.Attachments) > 0 {
+		filesURL = "Files: \""
+		for _, file := range m.Attachments {
+			filesURL = filesURL + file.URL + ","
+			mData.Files = append(mData.Files, file.URL)
+		}
+		filesURL = filesURL + "\"  "
+	}
+
+	return fmt.Sprintf("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.UserName + "#" + mData.UserNum + ">: " + mData.Message)
+}
+
 //ReactionAdd整形
 func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReactionAdd) (rData ReactionStruct) {
 	var err error
