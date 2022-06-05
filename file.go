@@ -11,14 +11,8 @@ import (
 
 // GoのPathを入手 最後に/がつく
 func GetGoDir() (goDir string) {
-	for i := 0; true; i++ {
-		_, file, _, _ := runtime.Caller(i)
-		goDir = filepath.Dir(file) + "/"
-		_, _, _, ok := runtime.Caller(i + 3)
-		if !ok {
-			break
-		}
-	}
+	_, file, _, _ := runtime.Caller(1)
+	goDir = filepath.Dir(file) + "/"
 	return
 }
 
