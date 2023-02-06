@@ -320,9 +320,9 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 
 	done := make(chan error)
 	stream := dca.NewStream(encodeSession, vcsession, done)
-	var ticker *time.Ticker
+	ticker := time.NewTicker(time.Second)
 	if playback {
-		ticker = time.NewTicker(time.Second)
+		ticker.Stop()
 	}
 
 	for {
