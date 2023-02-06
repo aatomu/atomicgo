@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/ChimeraCoder/anaconda v2.0.0+incompatible
-	github.com/bwmarrin/discordgo v0.26.1
+	github.com/bwmarrin/discordgo v0.27.0
 	github.com/jonas747/dca v0.0.0-20210930103944-155f5e5f0cc7
 )
 

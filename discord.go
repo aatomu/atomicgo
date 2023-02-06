@@ -12,7 +12,7 @@ import (
 	"github.com/jonas747/dca"
 )
 
-type MessageStruct struct {
+type MessageData struct {
 	GuildID     string
 	GuildName   string
 	GuildData   *discordgo.Guild
@@ -27,9 +27,10 @@ type MessageStruct struct {
 	MessageID   string
 	MessageData *discordgo.Message
 	Files       []string
+	FormatText  string
 }
 
-type ReactionStruct struct {
+type VoiceStateData struct {
 	GuildID     string
 	GuildName   string
 	GuildData   *discordgo.Guild
@@ -40,10 +41,27 @@ type ReactionStruct struct {
 	UserNum     string
 	UserName    string
 	UserData    *discordgo.User
-	Message     string
-	MessageID   string
-	MessageData *discordgo.Message
-	Emoji       string
+	IsJoin      bool
+	FormatText  string
+}
+
+type ReactionData struct {
+	GuildID      string
+	GuildName    string
+	GuildData    *discordgo.Guild
+	ChannelID    string
+	ChannelName  string
+	ChannelData  *discordgo.Channel
+	UserID       string
+	UserNum      string
+	UserName     string
+	UserData     *discordgo.User
+	Message      string
+	MessageID    string
+	MessageData  *discordgo.Message
+	ReactionType string
+	Emoji        string
+	FormatText   string
 }
 
 func DiscordBotSetup(botToken string) (discord *discordgo.Session) {
@@ -69,21 +87,17 @@ func DiscordBotEnd(discord *discordgo.Session) {
 }
 
 //MessageCreate整形
-func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageStruct) {
+func MessageParse(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageData) {
 	var err error
 	mData.GuildID = m.GuildID
 	mData.GuildData, err = discord.Guild(mData.GuildID)
 	if err == nil {
 		mData.GuildName = mData.GuildData.Name
-	} else {
-		mData.GuildName = "Unknown"
 	}
 	mData.ChannelID = m.ChannelID
 	mData.ChannelData, err = discord.Channel(mData.ChannelID)
 	if err == nil {
 		mData.ChannelName = mData.ChannelData.Name
-	} else {
-		mData.ChannelName = "Unknown"
 	}
 	mData.UserID = m.Author.ID
 	mData.UserNum = m.Author.Discriminator
@@ -102,64 +116,52 @@ func MessageViewAndEdit(discord *discordgo.Session, m *discordgo.MessageCreate) 
 		filesURL = filesURL + "\"  "
 	}
 
-	log.Print("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.UserName + "#" + mData.UserNum + ">: " + mData.Message)
+	mData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  %s<%s#%s>: %s`, mData.GuildName, mData.ChannelName, filesURL, mData.UserName, mData.UserNum, mData.Message)
 	return
 }
 
-//MessageCreate整形
-func MessageParse(discord *discordgo.Session, m *discordgo.MessageCreate) (text string) {
+// VCupdate
+func VoiceStateParse(discord *discordgo.Session, v *discordgo.VoiceStateUpdate) (vData VoiceStateData) {
 	var err error
-	var mData MessageStruct
-	mData.GuildID = m.GuildID
-	mData.GuildData, err = discord.Guild(mData.GuildID)
+	vData.GuildID = v.GuildID
+	vData.GuildData, err = discord.Guild(vData.GuildID)
 	if err == nil {
-		mData.GuildName = mData.GuildData.Name
-	} else {
-		mData.GuildName = "Unknown"
+		vData.GuildName = vData.GuildData.Name
 	}
-	mData.ChannelID = m.ChannelID
-	mData.ChannelData, err = discord.Channel(mData.ChannelID)
+	vData.ChannelID = v.ChannelID
+	vData.ChannelData, err = discord.Channel(vData.ChannelID)
 	if err == nil {
-		mData.ChannelName = mData.ChannelData.Name
+		vData.ChannelName = vData.ChannelData.Name
+	}
+	vData.UserID = v.UserID
+	vData.UserData, err = discord.User(v.UserID)
+	if err == nil {
+		vData.UserNum = vData.UserData.Discriminator
+		vData.UserName = vData.UserData.Username
 	} else {
-		mData.ChannelName = "Unknown"
+		vData.UserNum = "    "
+		vData.UserName = "????"
 	}
-	mData.UserID = m.Author.ID
-	mData.UserNum = m.Author.Discriminator
-	mData.UserName = m.Author.Username
-	mData.UserData = m.Author
-	mData.Message = m.Content
-	mData.MessageID = m.ID
-	mData.MessageData, _ = discord.ChannelMessage(mData.ChannelID, mData.MessageID)
-	filesURL := ""
-	if len(m.Attachments) > 0 {
-		filesURL = "Files: \""
-		for _, file := range m.Attachments {
-			filesURL = filesURL + file.URL + ","
-			mData.Files = append(mData.Files, file.URL)
-		}
-		filesURL = filesURL + "\"  "
-	}
+	vData.IsJoin = (v.ChannelID != "")
 
-	return fmt.Sprintf("Guild:\"" + mData.GuildName + "\"  Channel:\"" + mData.ChannelName + "\"  " + filesURL + "<" + mData.UserName + "#" + mData.UserNum + ">: " + mData.Message)
+	//ログを表示
+	vData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s> IsJoin:"%t"`, vData.GuildName, vData.ChannelName, vData.UserName, vData.UserNum, vData.IsJoin)
+	return
 }
 
 //ReactionAdd整形
-func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReactionAdd) (rData ReactionStruct) {
+//ReactionType: add remove remove_all
+func ReactionParse(discord *discordgo.Session, r *discordgo.MessageReaction, reactionType string) (rData ReactionData) {
 	var err error
 	rData.GuildID = r.GuildID
 	rData.GuildData, err = discord.Guild(rData.GuildID)
 	if err == nil {
 		rData.GuildName = rData.GuildData.Name
-	} else {
-		rData.GuildName = "Unknown"
 	}
 	rData.ChannelID = r.ChannelID
 	rData.ChannelData, err = discord.Channel(rData.ChannelID)
 	if err == nil {
 		rData.ChannelName = rData.ChannelData.Name
-	} else {
-		rData.ChannelName = "Unknown"
 	}
 	rData.UserID = r.UserID
 	rData.UserData, err = discord.User(r.UserID)
@@ -167,9 +169,10 @@ func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReac
 		rData.UserNum = rData.UserData.Discriminator
 		rData.UserName = rData.UserData.Username
 	} else {
-		rData.UserNum = "Unknown"
-		rData.UserName = "0000"
+		rData.UserNum = "    "
+		rData.UserName = "????"
 	}
+	rData.ReactionType = reactionType
 	rData.Emoji = r.Emoji.Name
 	rData.MessageID = r.MessageID
 	rData.MessageData, err = discord.ChannelMessage(rData.ChannelID, r.MessageID)
@@ -197,66 +200,7 @@ func ReactionAddViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReac
 	}
 
 	//ログを表示
-	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\"  <" + rData.UserName + "#" + rData.UserNum + "> +" + rData.Emoji + " => <" + rData.MessageData.Author.Username + "#" + rData.MessageData.Author.Discriminator + "> " + logText)
-	return
-}
-
-//ReactionRemove整形
-func ReactionRemoveViewAndEdit(discord *discordgo.Session, r *discordgo.MessageReactionRemove) (rData ReactionStruct) {
-	var err error
-	rData.GuildID = r.GuildID
-	rData.GuildData, err = discord.Guild(rData.GuildID)
-	if err == nil {
-		rData.GuildName = rData.GuildData.Name
-	} else {
-		rData.GuildName = "Unknown"
-	}
-	rData.ChannelID = r.ChannelID
-	rData.ChannelData, err = discord.Channel(rData.ChannelID)
-	if err == nil {
-		rData.ChannelName = rData.ChannelData.Name
-	} else {
-		rData.ChannelName = "Unknown"
-	}
-	rData.UserID = r.UserID
-	rData.UserData, err = discord.User(r.UserID)
-	if err == nil {
-		rData.UserNum = rData.UserData.Discriminator
-		rData.UserName = rData.UserData.Username
-	} else {
-		rData.UserNum = "Unknown"
-		rData.UserName = "0000"
-	}
-	rData.UserNum = rData.UserData.Discriminator
-	rData.UserName = rData.UserData.Username
-	rData.Emoji = r.Emoji.Name
-	rData.MessageID = r.MessageID
-	rData.MessageData, err = discord.ChannelMessage(rData.ChannelID, r.MessageID)
-	if err == nil {
-		rData.Message = rData.MessageData.Content
-	}
-
-	//改行あとを削除
-	if strings.Contains(rData.Message, "\n") {
-		replace := regexp.MustCompile(`\n.*`)
-		rData.Message = replace.ReplaceAllString(rData.Message, "..")
-	}
-
-	//文字数を制限
-	nowCount := 0
-	logText := ""
-	for _, word := range strings.Split(rData.Message, "") {
-		if nowCount < 20 {
-			logText = logText + word
-		}
-		if nowCount == 20 {
-			logText = logText + ".."
-		}
-		nowCount++
-	}
-
-	//ログを表示
-	log.Print("Guild:\"" + rData.GuildName + "\"  Channel:\"" + rData.ChannelData.Name + "\"  <" + rData.UserName + "#" + rData.UserNum + "> +" + rData.Emoji + " => <" + rData.MessageData.Author.Username + "#" + rData.MessageData.Author.Discriminator + "> " + logText)
+	rData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s> Type:"%s" Emoji:"%s" => <%s#%s> %s`, rData.GuildName, rData.ChannelName, rData.UserName, rData.UserNum, rData.ReactionType, rData.Emoji, rData.MessageData.Author.Username, rData.MessageData.Author.Discriminator, logText)
 	return
 }
 
@@ -388,21 +332,4 @@ func BotStateUpdate(discord *discordgo.Session, gameName string, Type int) (succ
 	}
 	err := discord.UpdateStatusComplex(state)
 	return !PrintError("Failed Update State", err)
-}
-
-//スラッシュコマンド作成
-func SlashCommandCreate(discord *discordgo.Session, guildID string, commands []*discordgo.ApplicationCommand) error {
-	for _, command := range commands {
-		_, err := discord.ApplicationCommandCreate(discord.State.User.ID, guildID, command)
-		if err != nil {
-			return fmt.Errorf("cannot create '%s' command: %v", command.Name, err)
-		}
-	}
-	return nil
-}
-
-//スラッシュコマンドレスポンス送信
-func SlashCommandResponse(discord *discordgo.Session, interaction *discordgo.Interaction, resp *discordgo.InteractionResponse) (success bool) {
-	err := discord.InteractionRespond(interaction, resp)
-	return !PrintError("Failed Return Interaction Response", err)
 }
