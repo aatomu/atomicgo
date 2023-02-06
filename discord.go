@@ -302,7 +302,7 @@ func UserVCState(discord *discordgo.Session, userid string) *discordgo.VoiceStat
 
 //音再生
 // end := make(<-chan bool, 1)
-func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConnection, filename string, playback bool, end <-chan bool) error {
+func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConnection, filename string, isPlayback bool, end <-chan bool) error {
 	if err := vcsession.Speaking(true); err != nil {
 		return err
 	}
@@ -321,7 +321,7 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 	done := make(chan error)
 	stream := dca.NewStream(encodeSession, vcsession, done)
 	ticker := time.NewTicker(time.Second)
-	if playback {
+	if !isPlayback {
 		ticker.Stop()
 	}
 
