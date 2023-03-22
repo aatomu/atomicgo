@@ -71,22 +71,24 @@ func DiscordBotSetup(botToken string) (discord *discordgo.Session) {
 	return
 }
 
-//Botを起動 Port占有させないため
+// Botを起動 Port占有させないため
+//
 //	defer atomicgo.DiscordBotEnd(discord)
-//が必要
+//
+// が必要
 func DiscordBotStart(discord *discordgo.Session) {
 	//起動
 	err := discord.Open()
 	PrintError("Failed Login", err)
 }
 
-//Botの使用していたws/wssを削除
+// Botの使用していたws/wssを削除
 func DiscordBotEnd(discord *discordgo.Session) {
 	err := discord.Close()
 	PrintError("Failed Leave", err)
 }
 
-//MessageCreate整形
+// MessageCreate整形
 func MessageParse(discord *discordgo.Session, m *discordgo.MessageCreate) (mData MessageData) {
 	var err error
 	mData.GuildID = m.GuildID
@@ -149,8 +151,8 @@ func VoiceStateParse(discord *discordgo.Session, v *discordgo.VoiceStateUpdate) 
 	return
 }
 
-//ReactionAdd整形
-//ReactionType: add remove remove_all
+// ReactionAdd整形
+// ReactionType: add remove remove_all
 func ReactionParse(discord *discordgo.Session, r *discordgo.MessageReaction, reactionType string) (rData ReactionData) {
 	var err error
 	rData.GuildID = r.GuildID
@@ -204,19 +206,19 @@ func ReactionParse(discord *discordgo.Session, r *discordgo.MessageReaction, rea
 	return
 }
 
-//Embed送信
+// Embed送信
 func SendEmbed(discord *discordgo.Session, channelID string, embed *discordgo.MessageEmbed) {
 	_, err := discord.ChannelMessageSendEmbed(channelID, embed)
 	PrintError("Failed Send Embed", err)
 }
 
-//リアクション追加用
+// リアクション追加用
 func AddReaction(discord *discordgo.Session, channelID string, messageID string, reaction string) {
 	err := discord.MessageReactionAdd(channelID, messageID, reaction)
 	PrintError("Failed Reaction add", err)
 }
 
-//ユーザーIDからVCに接続
+// ユーザーIDからVCに接続
 func JoinUserVCchannel(discord *discordgo.Session, userID string, micMute, speakerMute bool) (vc *discordgo.VoiceConnection, err error) {
 	vs := UserVCState(discord, userID)
 	if vs == nil {
@@ -244,7 +246,7 @@ func UserVCState(discord *discordgo.Session, userid string) *discordgo.VoiceStat
 	return nil
 }
 
-//音再生
+// 音再生
 // end := make(<-chan bool, 1)
 func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConnection, filename string, isPlayback bool, end <-chan bool) error {
 	if err := vcsession.Speaking(true); err != nil {
@@ -291,8 +293,8 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 	}
 }
 
-//所有ロールの確認
-//許可されたロールの所有者か確認
+// 所有ロールの確認
+// 許可されたロールの所有者か確認
 func HaveRole(discord *discordgo.Session, guildID string, userID string, checkRole string) bool {
 	//ロールを持っていたら実行
 	userRoleList, err := discord.GuildMember(guildID, userID)
@@ -318,7 +320,7 @@ func HaveRole(discord *discordgo.Session, guildID string, userID string, checkRo
 	return false
 }
 
-//Botのステータスアップデート
+// Botのステータスアップデート
 func BotStateUpdate(discord *discordgo.Session, gameName string, Type int) (success bool) {
 	state := discordgo.UpdateStatusData{
 		Activities: []*discordgo.Activity{
