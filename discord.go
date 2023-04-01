@@ -31,18 +31,29 @@ type MessageData struct {
 }
 
 type VoiceStateData struct {
-	GuildID     string
-	GuildName   string
-	GuildData   *discordgo.Guild
-	ChannelID   string
-	ChannelName string
-	ChannelData *discordgo.Channel
-	UserID      string
-	UserNum     string
-	UserName    string
-	UserData    *discordgo.User
-	IsJoin      bool
-	FormatText  string
+	GuildID      string
+	GuildName    string
+	GuildData    *discordgo.Guild
+	ChannelID    string
+	ChannelName  string
+	ChannelData  *discordgo.Channel
+	UserID       string
+	UserNum      string
+	UserName     string
+	UserData     *discordgo.User
+	Status       VoiceStatus
+	StatusUpdate VoiceStatus
+	FormatText   string
+}
+
+type VoiceStatus struct {
+	ChannelJoin  bool
+	ServerDeaf   bool
+	ServerMute   bool
+	ClientDeaf   bool
+	ClientMute   bool
+	ClientGoLive bool
+	ClientCam    bool
 }
 
 type ReactionData struct {
@@ -144,10 +155,47 @@ func VoiceStateParse(discord *discordgo.Session, v *discordgo.VoiceStateUpdate) 
 		vData.UserNum = "    "
 		vData.UserName = "????"
 	}
-	vData.IsJoin = (v.ChannelID != "")
+	vData.Status = VoiceStatus{
+		ChannelJoin:  (v.ChannelID != ""),
+		ServerDeaf:   v.Deaf,
+		ServerMute:   v.Mute,
+		ClientDeaf:   v.SelfDeaf,
+		ClientMute:   v.SelfMute,
+		ClientGoLive: v.SelfStream,
+		ClientCam:    v.SelfVideo,
+	}
+	if v.BeforeUpdate == nil {
+		vData.StatusUpdate.ChannelJoin = true
+	} else {
+		vData.StatusUpdate = VoiceStatus{
+			ChannelJoin:  (v.ChannelID != v.BeforeUpdate.ChannelID),
+			ServerDeaf:   (v.Deaf != v.BeforeUpdate.Deaf),
+			ServerMute:   (v.Mute != v.BeforeUpdate.Mute),
+			ClientDeaf:   (v.SelfDeaf != v.BeforeUpdate.SelfDeaf),
+			ClientMute:   (v.SelfMute != v.BeforeUpdate.SelfMute),
+			ClientGoLive: (v.SelfStream != v.BeforeUpdate.SelfStream),
+			ClientCam:    (v.SelfVideo != v.BeforeUpdate.SelfVideo),
+		}
+	}
 
 	//ログを表示
-	vData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s> IsJoin:"%t"`, vData.GuildName, vData.ChannelName, vData.UserName, vData.UserNum, vData.IsJoin)
+	vData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s>`, vData.GuildName, vData.ChannelName, vData.UserName, vData.UserNum)
+	switch {
+	case vData.StatusUpdate.ChannelJoin:
+		vData.FormatText = fmt.Sprintf("%s ChangeTo ChannelJoin:\"%t\"", vData.FormatText, vData.Status.ChannelJoin)
+	case vData.StatusUpdate.ServerDeaf:
+		vData.FormatText = fmt.Sprintf("%s ChangeTo ServerDeaf:\"%t\"", vData.FormatText, vData.Status.ServerDeaf)
+	case vData.StatusUpdate.ServerMute:
+		vData.FormatText = fmt.Sprintf("%s ChangeTo ServerMute:\"%t\"", vData.FormatText, vData.Status.ServerMute)
+	case vData.StatusUpdate.ClientDeaf:
+		vData.FormatText = fmt.Sprintf("%s ChangeTo ClientDeaf:\"%t\"", vData.FormatText, vData.Status.ClientDeaf)
+	case vData.StatusUpdate.ClientMute:
+		vData.FormatText = fmt.Sprintf("%s ChangeTo ClientMute:\"%t\"", vData.FormatText, vData.Status.ClientMute)
+	case vData.StatusUpdate.ClientGoLive:
+		vData.FormatText = fmt.Sprintf("%s ChangeTo ClientGoLive:\"%t\"", vData.FormatText, vData.Status.ClientGoLive)
+	case vData.StatusUpdate.ClientCam:
+		vData.FormatText = fmt.Sprintf("%s ChangeTo ClientCam:\"%t\"", vData.FormatText, vData.Status.ClientCam)
+	}
 	return
 }
 
