@@ -127,7 +127,7 @@ func ConvBtoI(b []byte) int {
 }
 
 type ExMap struct {
-	sm sync.Map
+	Sm sync.Map
 }
 
 // 排他的Mapを入手
@@ -138,22 +138,22 @@ func NewExMap() *ExMap {
 
 // 排他的Mapに書き込み
 func (m *ExMap) Write(key string, value any) {
-	m.sm.Store(key, value)
+	m.Sm.Store(key, value)
 }
 
 // 排他的Mapを読み込み value.(型名)での変換が必要
 func (m *ExMap) Load(key string) (value any, ok bool) {
-	value, ok = m.sm.Load(key)
+	value, ok = m.Sm.Load(key)
 	return
 }
 
 // 排他的Mapに存在するか確認
 func (m *ExMap) Check(key string) (ok bool) {
-	_, ok = m.sm.Load(key)
+	_, ok = m.Sm.Load(key)
 	return
 }
 
 // 排他的Mapの削除
 func (m *ExMap) Delete(key string) {
-	m.sm.Delete(key)
+	m.Sm.Delete(key)
 }
