@@ -6,7 +6,7 @@ require (
 	github.com/ChimeraCoder/anaconda v2.0.0+incompatible
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/jonas747/dca v0.0.0-20210930103944-155f5e5f0cc7
-	golang.org/x/sys v0.6.0
+	golang.org/x/sys v0.7.0
 )
 
 require (
