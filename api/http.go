@@ -2,18 +2,18 @@ package atomicgo
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
-func HttpGet(url string) (result string, err error) {
+func GetReq(url string) (result string, err error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	byteArray, _ := ioutil.ReadAll(resp.Body)
+	byteArray, _ := io.ReadAll(resp.Body)
 	return string(byteArray), nil
 }
 
@@ -25,7 +25,7 @@ const (
 )
 
 // 複数headerを送る際は map["A"] = "a;b;c"
-func HttpReqest(method HttpReqestType, url string, body string, headers map[string]string) (resp *http.Response, err error) {
+func HttpReq(method HttpReqestType, url string, body string, headers map[string]string) (resp *http.Response, err error) {
 	// リクエストの準備
 	req, _ := http.NewRequest(string(method), url, bytes.NewBuffer([]byte(body)))
 	for key, value := range headers {

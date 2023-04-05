@@ -1,4 +1,4 @@
-package atomicgo
+package inotify
 
 import (
 	"bytes"

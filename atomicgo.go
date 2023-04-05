@@ -16,61 +16,48 @@ import (
 	"time"
 )
 
-// プログラムの実行準備 IOを返却 io.Start()で実行
-//Linuxなら/bin/bash,-c,<Command>を
-//WinならC:\Windows\System32\cmd.exe,/c,<Command>
-func ExecuteCommand(pront, option, command string) (io *exec.Cmd) {
-	return exec.Command(pront, option, command)
-}
-
 // IOを分けて返却
-func GetCommandIo(io *exec.Cmd) (inIo io.WriteCloser, outIo io.ReadCloser, errIo io.ReadCloser) {
+func StdPipe(io *exec.Cmd) (inIo io.WriteCloser, outIo io.ReadCloser, errIo io.ReadCloser) {
 	inIo, _ = io.StdinPipe()
 	outIo, _ = io.StdoutPipe()
 	errIo, _ = io.StderrPipe()
 	return
 }
 
-// IO書き込み
-func IoWrite(ioIn io.WriteCloser, text string) {
-	io.WriteString(ioIn, text+"\n")
-}
-
-// 正規表現チェック
-func StringCheck(text string, check string) (success bool) {
+// Regexp Match
+func RegMatch(text string, check string) (match bool) {
 	return regexp.MustCompile(check).MatchString(text)
 }
 
-// 正規表現書き換え
-func StringReplace(fromText string, toText string, check string) (replaced string) {
+// Regexp Replace
+func RegReplace(fromText string, toText string, check string) (replaced string) {
 	return regexp.MustCompile(check).ReplaceAllString(fromText, toText)
 }
 
-// 乱数生成
-func RandomGenerate(max int) (result int) {
-	rand.Seed(time.Now().UnixNano())
-	result = rand.Int() % max
+// Rand Generate
+func Rand(max int) (result int) {
+	result = rand.New(rand.NewSource(time.Now().UnixNano())).Int() % max
 	return
 }
 
-// maxまでstringを切る
-func StringCut(text string, max int) (result string) {
-	//文字数を制限
+// String Cut
+func StrCut(text, suffix string, max int) (result string) {
 	textArray := strings.Split(text, "")
 	if len(textArray) < max {
 		return text
 	}
 	for i := 0; i < max; i++ {
-		result = result + textArray[i]
+		result += textArray[i]
 	}
+	result += suffix
 	return
 }
 
-// 特定のシグナルを受けるまで終了しない
-func StopWait() {
-	sc := make(chan os.Signal, 1)
+// Listen Kill,Term,Interupt to Channel
+func BreakSignal() (sc chan os.Signal) {
+	sc = make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-sc
+	return
 }
 
 // Error表示
@@ -80,7 +67,7 @@ func PrintError(message string, err error) (errored bool) {
 		// 原因を特定
 		for i := 1; true; i++ {
 			pc, file, line, _ := runtime.Caller(i)
-			trackBack += fmt.Sprintf("> %s:%d %s()\n", filepath.Base(file), line, StringReplace(runtime.FuncForPC(pc).Name(), "", "^.*/"))
+			trackBack += fmt.Sprintf("> %s:%d %s()\n", filepath.Base(file), line, RegReplace(runtime.FuncForPC(pc).Name(), "", "^.*/"))
 			_, _, _, ok := runtime.Caller(i + 3)
 			if !ok {
 				break
@@ -166,7 +153,7 @@ func (m *ExMap) ExMapCheck(key string) (ok bool) {
 	return
 }
 
-//排他的Mapの削除
+// 排他的Mapの削除
 func (m *ExMap) ExMapDelete(key string) {
 	m.Delete(key)
 }

@@ -1,4 +1,4 @@
-package atomicgo
+package discordbot
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/atomu21263/atomicgo"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jonas747/dca"
 )
@@ -75,28 +76,15 @@ type ReactionData struct {
 	FormatText   string
 }
 
-func DiscordBotSetup(botToken string) (discord *discordgo.Session) {
-	//bot起動準備
-	discord, err := discordgo.New("Bot " + botToken)
-	PrintError("Failed get discordStruct", err)
-	return
+// discordbot init
+func Init(token string) (discord *discordgo.Session, err error) {
+	return discordgo.New("Bot " + token)
 }
 
-// Botを起動 Port占有させないため
-//
-//	defer atomicgo.DiscordBotEnd(discord)
-//
-// が必要
-func DiscordBotStart(discord *discordgo.Session) {
-	//起動
-	err := discord.Open()
-	PrintError("Failed Login", err)
-}
-
-// Botの使用していたws/wssを削除
-func DiscordBotEnd(discord *discordgo.Session) {
-	err := discord.Close()
-	PrintError("Failed Leave", err)
+// discordbot start
+// pls "defer discord.Close()"
+func Start(discord *discordgo.Session) error {
+	return discord.Open()
 }
 
 // MessageCreate整形
@@ -129,6 +117,7 @@ func MessageParse(discord *discordgo.Session, m *discordgo.MessageCreate) (mData
 		filesURL = filesURL + "\"  "
 	}
 
+	// Formatter
 	mData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  %s<%s#%s>: %s`, mData.GuildName, mData.ChannelName, filesURL, mData.UserName, mData.UserNum, mData.Message)
 	return
 }
@@ -178,7 +167,7 @@ func VoiceStateParse(discord *discordgo.Session, v *discordgo.VoiceStateUpdate) 
 		}
 	}
 
-	//ログを表示
+	// Formatter
 	vData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s>`, vData.GuildName, vData.ChannelName, vData.UserName, vData.UserNum)
 	switch {
 	case vData.StatusUpdate.ChannelJoin:
@@ -230,40 +219,17 @@ func ReactionParse(discord *discordgo.Session, r *discordgo.MessageReaction, rea
 		rData.Message = rData.MessageData.Content
 	}
 
-	//改行あとを削除
+	// Delete After New lines
 	if strings.Contains(rData.Message, "\n") {
 		replace := regexp.MustCompile(`\n.*`)
 		rData.Message = replace.ReplaceAllString(rData.Message, "..")
 	}
 
-	//文字数を制限
-	nowCount := 0
-	logText := ""
-	for _, word := range strings.Split(rData.Message, "") {
-		if nowCount < 20 {
-			logText = logText + word
-		}
-		if nowCount == 20 {
-			logText = logText + ".."
-		}
-		nowCount++
-	}
+	logText := atomicgo.StrCut(rData.Message, "..", 20)
 
-	//ログを表示
+	// Formatter
 	rData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s> Type:"%s" Emoji:"%s" => <%s#%s> %s`, rData.GuildName, rData.ChannelName, rData.UserName, rData.UserNum, rData.ReactionType, rData.Emoji, rData.MessageData.Author.Username, rData.MessageData.Author.Discriminator, logText)
 	return
-}
-
-// Embed送信
-func SendEmbed(discord *discordgo.Session, channelID string, embed *discordgo.MessageEmbed) {
-	_, err := discord.ChannelMessageSendEmbed(channelID, embed)
-	PrintError("Failed Send Embed", err)
-}
-
-// リアクション追加用
-func AddReaction(discord *discordgo.Session, channelID string, messageID string, reaction string) {
-	err := discord.MessageReactionAdd(channelID, messageID, reaction)
-	PrintError("Failed Reaction add", err)
 }
 
 // ユーザーIDからVCに接続
@@ -334,7 +300,7 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 			encodeSession.Cleanup()
 			_, err := stream.Finished()
 			if err != nil {
-				PrintError("Failed stop audio", err)
+				return err
 			}
 			return nil
 		}
@@ -343,33 +309,31 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 
 // 所有ロールの確認
 // 許可されたロールの所有者か確認
-func HaveRole(discord *discordgo.Session, guildID string, userID string, checkRole string) bool {
+func HaveRole(discord *discordgo.Session, guildID string, userID string, checkRole string) (bool, error) {
 	//ロールを持っていたら実行
 	userRoleList, err := discord.GuildMember(guildID, userID)
 	if err != nil {
-		PrintError("Failed get UserData on Guild", err)
-		return false
+		return false, err
 	}
 	guildRoleList, err := discord.GuildRoles(guildID)
 	if err != nil {
-		PrintError("Failed get GuildRoles", err)
-		return false
+		return false, err
 	}
 	//ロール一覧から検索
 	for _, guildRole := range guildRoleList {
 		if guildRole.ID == checkRole {
 			for _, userRole := range userRoleList.Roles {
 				if userRole == guildRole.ID {
-					return true
+					return true, nil
 				}
 			}
 		}
 	}
-	return false
+	return false, nil
 }
 
 // Botのステータスアップデート
-func BotStateUpdate(discord *discordgo.Session, gameName string, Type int) (success bool) {
+func BotStateUpdate(discord *discordgo.Session, gameName string, Type int) (success bool, err error) {
 	state := discordgo.UpdateStatusData{
 		Activities: []*discordgo.Activity{
 			{
@@ -380,6 +344,6 @@ func BotStateUpdate(discord *discordgo.Session, gameName string, Type int) (succ
 		AFK:    false,
 		Status: "online",
 	}
-	err := discord.UpdateStatusComplex(state)
-	return !PrintError("Failed Update State", err)
+	err = discord.UpdateStatusComplex(state)
+	return err == nil, err
 }

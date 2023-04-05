@@ -1,4 +1,4 @@
-package atomicgo
+package cipher
 
 import (
 	"crypto/aes"
