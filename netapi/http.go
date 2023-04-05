@@ -1,4 +1,4 @@
-package atomicgo
+package netapi
 
 import (
 	"bytes"

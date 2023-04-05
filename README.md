@@ -4,7 +4,7 @@
 ```
 atomicgo :  入れられるもんが片っ端から入ってるw
 
-api/
+netapi/
     http :  HTTPrequestあたりの簡略化func
     twitter : TwitterAPIのラッパー
 cipher/
