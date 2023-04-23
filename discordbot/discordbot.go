@@ -297,7 +297,7 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 			playbackPosition := stream.PlaybackPosition()
 			log.Println("Sending Now... : Playback:", playbackPosition)
 		case <-end:
-			encodeSession.Cleanup()
+			encodeSession.Truncate()
 			_, err := stream.Finished()
 			if err != nil {
 				return err
