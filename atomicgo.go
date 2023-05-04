@@ -34,7 +34,7 @@ func RegReplace(fromText string, toText string, check string) (replaced string) 
 	return regexp.MustCompile(check).ReplaceAllString(fromText, toText)
 }
 
-// Rand Generate
+// Rand Generate 0~max-1
 func Rand(max int) (result int) {
 	result = rand.New(rand.NewSource(time.Now().UnixNano())).Int() % max
 	return
