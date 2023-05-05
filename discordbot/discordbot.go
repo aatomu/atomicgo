@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/atomu21263/atomicgo"
+	"github.com/atomu21263/atomicgo/utils"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jonas747/dca"
 )
@@ -225,7 +225,7 @@ func ReactionParse(discord *discordgo.Session, r *discordgo.MessageReaction, rea
 		rData.Message = replace.ReplaceAllString(rData.Message, "..")
 	}
 
-	logText := atomicgo.StrCut(rData.Message, "..", 20)
+	logText := utils.StrCut(rData.Message, "..", 20)
 
 	// Formatter
 	rData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s> Type:"%s" Emoji:"%s" => <%s#%s> %s`, rData.GuildName, rData.ChannelName, rData.UserName, rData.UserNum, rData.ReactionType, rData.Emoji, rData.MessageData.Author.Username, rData.MessageData.Author.Discriminator, logText)
@@ -269,9 +269,9 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 	defer vcsession.Speaking(false)
 
 	opts := dca.StdEncodeOptions
-	opts.CompressionLevel = 0
+	opts.CompressionLevel = 1
 	opts.RawOutput = true
-	opts.Bitrate = 120
+	opts.Bitrate = 128
 	opts.AudioFilter = fmt.Sprintf("aresample=24000,asetrate=24000*%f/100,atempo=100/%f*%f", pitch*100, pitch*100, speed)
 	encodeSession, err := dca.EncodeFile(filename, opts)
 	if err != nil {

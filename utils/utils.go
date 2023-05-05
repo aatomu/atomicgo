@@ -1,4 +1,4 @@
-package atomicgo
+package utils
 
 import (
 	"fmt"
