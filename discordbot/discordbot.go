@@ -10,7 +10,6 @@ import (
 
 	"github.com/atomu21263/atomicgo/utils"
 	"github.com/bwmarrin/discordgo"
-	"github.com/jonas747/dca"
 )
 
 type MessageData struct {
@@ -268,18 +267,12 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 	}
 	defer vcsession.Speaking(false)
 
-	opts := dca.StdEncodeOptions
-	opts.CompressionLevel = 1
-	opts.RawOutput = true
-	opts.Bitrate = 128
-	opts.AudioFilter = fmt.Sprintf("aresample=24000,asetrate=24000*%f/100,atempo=100/%f*%f", pitch*100, pitch*100, speed)
-	encodeSession, err := dca.EncodeFile(filename, opts)
-	if err != nil {
-		return err
-	}
-
 	done := make(chan error)
-	stream := dca.NewStream(encodeSession, vcsession, done)
+	stream := NewFileEncodeStream(vcsession, filename, EncodeOpts{
+		Compression: 1,
+		AudioFilter: fmt.Sprintf("aresample=24000,asetrate=24000*%f/100,atempo=100/%f*%f", pitch*100, pitch*100, speed),
+	}, done)
+
 	ticker := time.NewTicker(time.Second)
 	if !isPlayback {
 		ticker.Stop()
@@ -291,17 +284,12 @@ func PlayAudioFile(speed float64, pitch float64, vcsession *discordgo.VoiceConne
 			if err != nil && err != io.EOF {
 				return err
 			}
-			encodeSession.Truncate()
+			stream.Cleanup()
 			return nil
 		case <-ticker.C:
-			playbackPosition := stream.PlaybackPosition()
-			log.Println("Sending Now... : Playback:", playbackPosition)
+			log.Printf("Sending Now... : Playback:%.2f(x%.2f)", stream.Status.Time.Seconds(), stream.Status.Speed)
 		case <-end:
-			encodeSession.Truncate()
-			_, err := stream.Finished()
-			if err != nil {
-				return err
-			}
+			stream.Cleanup()
 			return nil
 		}
 	}
