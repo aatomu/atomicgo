@@ -227,7 +227,7 @@ func ReactionParse(discord *discordgo.Session, r *discordgo.MessageReaction, rea
 	logText := utils.StrCut(rData.Message, "..", 20)
 
 	// Formatter
-	rData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s> Type:"%s" Emoji:"%s" => <%s#%s> %s`, rData.GuildName, rData.ChannelName, rData.UserName, rData.UserNum, rData.ReactionType, rData.Emoji, rData.MessageData.Author.Username, rData.MessageData.Author.Discriminator, logText)
+	rData.FormatText = fmt.Sprintf(`Guild:"%s"  Channel:"%s"  <%s#%s> Type:"%s" Emoji:"%s" => <%s#%s> %s`, rData.GuildName, rData.ChannelName, rData.UserName, rData.UserNum, rData.ReactionType, rData.Emoji, rData.UserName, rData.UserNum, logText)
 	return
 }
 
