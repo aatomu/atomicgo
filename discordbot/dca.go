@@ -22,10 +22,11 @@ type encodeSession struct {
 	filePath string
 	opts     EncodeOpts
 
-	flames  chan []byte
-	vc      *discordgo.VoiceConnection
-	process *os.Process
-	done    chan error
+	flames         chan []byte
+	isFlamesClosed bool
+	vc             *discordgo.VoiceConnection
+	process        *os.Process
+	done           chan error
 }
 
 // FFmpeg Options
@@ -73,7 +74,13 @@ func NewFileEncodeStream(v *discordgo.VoiceConnection, f string, opts EncodeOpts
 }
 
 func (s *encodeSession) run() {
-	defer close(s.flames)
+	defer func() {
+		if s.isFlamesClosed {
+			return
+		}
+		close(s.flames)
+		s.isFlamesClosed = true
+	}()
 
 	args := []string{
 		// Default
@@ -240,12 +247,15 @@ func (s *encodeSession) Stop() {
 	if s.process == nil {
 		return
 	}
-
 	s.process.Kill()
 }
 
 func (s *encodeSession) Cleanup() {
 	s.Stop()
 
+	if s.isFlamesClosed {
+		return
+	}
 	close(s.flames)
+	s.isFlamesClosed = true
 }
