@@ -237,6 +237,10 @@ func (s *encodeSession) opusFlame() (frame []byte, err error) {
 }
 
 func (s *encodeSession) Stop() {
+	if s.process == nil {
+		return
+	}
+
 	s.process.Kill()
 }
 
