@@ -237,15 +237,9 @@ func JoinUserVCchannel(discord *discordgo.Session, userID string, micMute, speak
 	if vs == nil {
 		return nil, fmt.Errorf("user doesn't join voice chat")
 	}
+
 	vc, err = discord.ChannelVoiceJoin(vs.GuildID, vs.ChannelID, micMute, speakerMute)
-	if err != nil {
-		if _, ok := discord.VoiceConnections[vs.GuildID]; ok {
-			vc = discord.VoiceConnections[vs.GuildID]
-		} else {
-			return nil, err
-		}
-	}
-	return vc, nil
+	return vc, err
 }
 
 func UserVCState(discord *discordgo.Session, userid string) *discordgo.VoiceState {
