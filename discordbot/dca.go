@@ -20,6 +20,7 @@ import (
 type encodeSession struct {
 	Status   EncodeStats
 	filePath string
+	pipe     io.Reader
 	opts     EncodeOpts
 
 	flames         chan []byte
@@ -43,6 +44,34 @@ type EncodeStats struct {
 	Time    time.Duration
 	Bitrate float32
 	Speed   float32
+}
+
+func NewMemEncodeStream(v *discordgo.VoiceConnection, r io.Reader, opts EncodeOpts, done chan error) (s *encodeSession) {
+	encodeSetting := EncodeOpts{
+		FlameBuf:    100,
+		Volume:      256,
+		Offset:      opts.Offset,
+		AudioFilter: opts.AudioFilter,
+		Compression: opts.Compression,
+	}
+	if opts.FlameBuf != 0 {
+		encodeSetting.FlameBuf = opts.FlameBuf
+	}
+	if opts.Volume != 0 {
+		encodeSetting.Volume = opts.Volume
+	}
+
+	s = &encodeSession{
+		pipe:   r,
+		opts:   encodeSetting,
+		flames: make(chan []byte, opts.FlameBuf),
+		vc:     v,
+		done:   done,
+	}
+	go s.run()
+	go s.stream()
+
+	return
 }
 
 func NewFileEncodeStream(v *discordgo.VoiceConnection, f string, opts EncodeOpts, done chan error) (s *encodeSession) {
@@ -82,11 +111,17 @@ func (s *encodeSession) run() {
 		s.isFlamesClosed = true
 	}()
 
+	// pipe or file
+	inFile := "pipe:0"
+	if s.filePath != "" {
+		inFile = s.filePath
+	}
+
 	args := []string{
 		// Default
 		"-stats",
 		"-stats_period", "0.1",
-		"-i", s.filePath,
+		"-i", inFile,
 		"-vol", strconv.Itoa(s.opts.Volume),
 		"-ss", fmt.Sprintf("%.2f", s.opts.Offset),
 		"-compression_level", strconv.Itoa(s.opts.Compression),
@@ -110,6 +145,10 @@ func (s *encodeSession) run() {
 
 	args = append(args, "pipe:1")
 	ffmpeg := exec.Command("ffmpeg", args...)
+
+	if s.pipe != nil {
+		ffmpeg.Stdin = s.pipe
+	}
 
 	s.process = ffmpeg.Process
 
