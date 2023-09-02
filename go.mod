@@ -1,4 +1,4 @@
-module github.com/atomu21263/atomicgo
+module github.com/aatomu/atomicgo
 
 go 1.20
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/atomu21263/atomicgo/utils"
+	"github.com/aatomu/atomicgo/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
