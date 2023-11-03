@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"time"
@@ -24,7 +23,7 @@ func DigestAuthNew(Realm string) *DigestAuth {
 
 // Send "Digest Auth" To Client
 func (d *DigestAuth) Require(w http.ResponseWriter, lifetime time.Duration) {
-	nonceText := fmt.Sprintf("%x", rand.New(rand.NewSource(time.Now().UnixNano())).Int())
+	nonceText := fmt.Sprintf("%x%x", time.Now().UnixMicro(), time.Now().UnixNano())
 	d.nonce[nonceText] = false
 
 	w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Digest realm="%s",nonce="%s",algorithm=MD5,qop="auth"`, d.realm, nonceText))
