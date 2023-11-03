@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -29,6 +30,7 @@ func DigestAuthNew(Realm string, lifetime time.Duration) *DigestAuth {
 
 // Send "Digest Auth" To Client
 func (d *DigestAuth) Require(r *http.Request, w http.ResponseWriter) {
+	log.Println("Require")
 	isUserInput := d.isUserInput(r)
 	// New Nonce
 	timestamp := fmt.Sprintf("%d", time.Now().UnixMicro())
@@ -103,7 +105,7 @@ func (d DigestAuth) Checksum(user string, r *http.Request) (ok bool, err error) 
 
 	// Get nc Value
 	var nc string
-	value := regexp.MustCompile(`nc=([0-9]+)`).FindStringSubmatch(Auth[0])
+	value := regexp.MustCompile(`nc=([0-9a-f]+)`).FindStringSubmatch(Auth[0])
 	if len(value) != 2 {
 		return false, fmt.Errorf("invaild nc value")
 	}
