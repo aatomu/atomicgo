@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -30,7 +29,6 @@ func DigestAuthNew(Realm string, lifetime time.Duration) *DigestAuth {
 
 // Send "Digest Auth" To Client
 func (d *DigestAuth) Require(r *http.Request, w http.ResponseWriter) {
-	log.Println("Require")
 	isUserInput := d.isUserInput(r)
 	// New Nonce
 	timestamp := fmt.Sprintf("%d", time.Now().UnixMicro())
