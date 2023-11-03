@@ -41,7 +41,7 @@ func (d *DigestAuth) GetUsername(r *http.Request) (username string) {
 	if len(Auth) != 1 {
 		return
 	}
-	value := regexp.MustCompile(`username=\"(.+)\",`).FindStringSubmatch(Auth[0])
+	value := regexp.MustCompile(`username=\"(.+?)\"`).FindStringSubmatch(Auth[0])
 	if len(value) != 2 {
 		return
 	}
