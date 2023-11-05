@@ -36,7 +36,7 @@ func (d *DigestAuth) Require(r *http.Request, w http.ResponseWriter) {
 	randText := fmt.Sprintf("%x", rand.New(rand.NewSource(time.Now().UnixNano())).Int())
 	d.nonce[timestamp] = randText
 
-	if d.isUserInput(r) {
+	if d.shouldUserInput(r) {
 		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Digest realm="%s",nonce="%s",algorithm=MD5,qop="auth"`, d.realm, newNonce(timestamp, randText)))
 	} else {
 		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Digest realm="%s",nonce="%s",stale=true,algorithm=MD5,qop="auth"`, d.realm, newNonce(timestamp, randText)))
@@ -51,7 +51,7 @@ func (d *DigestAuth) Require(r *http.Request, w http.ResponseWriter) {
 }
 
 // Bypass User Input (if nonce is stale)
-func (d *DigestAuth) isUserInput(r *http.Request) bool {
+func (d *DigestAuth) shouldUserInput(r *http.Request) bool {
 	// Exist Authorization Header
 	Auth := r.Header.Values("Authorization")
 	if len(Auth) != 1 {
