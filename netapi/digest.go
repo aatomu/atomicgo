@@ -14,28 +14,29 @@ import (
 )
 
 type DigestAuth struct {
-	realm    string
-	nonce    map[string]string // nonce="timestamp Hash(timestamp+randText)", nonce = {timestamp:"nonce"}
-	lifetime time.Duration
+	realm      string
+	nonce      map[string]string // nonce="timestamp Hash(timestamp+randText)", nonce = {timestamp:"nonce"}
+	activeTime time.Duration
+	deleteTime time.Duration
 }
 
-func DigestAuthNew(Realm string, lifetime time.Duration) *DigestAuth {
+func DigestAuthNew(Realm string, activeTime, deleteTime time.Duration) *DigestAuth {
 	return &DigestAuth{
-		realm:    Realm,
-		nonce:    map[string]string{},
-		lifetime: lifetime,
+		realm:      Realm,
+		nonce:      map[string]string{},
+		activeTime: activeTime,
+		deleteTime: deleteTime,
 	}
 }
 
 // Send "Digest Auth" To Client
 func (d *DigestAuth) Require(r *http.Request, w http.ResponseWriter) {
-	isUserInput := d.isUserInput(r)
 	// New Nonce
 	timestamp := fmt.Sprintf("%d", time.Now().UnixMicro())
 	randText := fmt.Sprintf("%x", rand.New(rand.NewSource(time.Now().UnixNano())).Int())
 	d.nonce[timestamp] = randText
 
-	if isUserInput {
+	if d.isUserInput(r) {
 		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Digest realm="%s",nonce="%s",algorithm=MD5,qop="auth"`, d.realm, newNonce(timestamp, randText)))
 	} else {
 		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Digest realm="%s",nonce="%s",stale=true,algorithm=MD5,qop="auth"`, d.realm, newNonce(timestamp, randText)))
@@ -44,13 +45,13 @@ func (d *DigestAuth) Require(r *http.Request, w http.ResponseWriter) {
 
 	// Delete Nonce
 	go func() {
-		time.Sleep(d.lifetime * 2)
+		time.Sleep(d.activeTime + d.deleteTime)
 		delete(d.nonce, timestamp)
 	}()
 }
 
 // Bypass User Input (if nonce is stale)
-func (d *DigestAuth) isUserInput(r *http.Request) (isInvaild bool) {
+func (d *DigestAuth) isUserInput(r *http.Request) bool {
 	// Exist Authorization Header
 	Auth := r.Header.Values("Authorization")
 	if len(Auth) != 1 {
@@ -73,7 +74,7 @@ func (d *DigestAuth) isUserInput(r *http.Request) (isInvaild bool) {
 	timestamp := time.UnixMicro(t)
 	// Time check
 	// timestamp > time.Now() - lifetime
-	isOld := time.Since(timestamp) > d.lifetime
+	isOld := time.Since(timestamp) > d.activeTime
 	return isOld
 }
 
