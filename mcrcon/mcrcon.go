@@ -12,81 +12,91 @@ import (
 type SendType int32
 
 const (
-	BadAuth        int32    = -1
+	BadAuth        SendType = -1
 	Response       SendType = 0
 	ExecuteCommand SendType = 2
 	AuthSuccess    SendType = 2
 	ServerAuth     SendType = 3
 )
 
-var uniqueID = 1
-
 // Rcon処理用のStruct
 type Rcon struct {
-	conn net.Conn
-	pass string
+	conn     net.Conn
+	pass     string
+	uniqueID int32
 }
 
 // Rcon起動
-func Login(address, password string) (c *Rcon, err error) {
+func Login(address, password string) (rcon *Rcon, err error) {
 	// tcp送信
 	conn, err := net.DialTimeout("tcp", address, 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
 	// 保存
-	c = &Rcon{conn: conn, pass: password}
-	// 認証
-	conn.Write(format(password, ServerAuth))
-	// 読み込み
-	r := c.result()
-	if r.ID < 1 {
+	rcon = &Rcon{
+		conn:     conn,
+		pass:     password,
+		uniqueID: 0,
+	}
+
+	// 送信
+	res, err := rcon.Send(ServerAuth, password)
+	if res.Type == BadAuth {
 		return nil, fmt.Errorf("failed rcon server auth")
 	}
 	return
 }
 
 // コマンドの送信
-func (c *Rcon) SendCommand(cmd string) (result string) {
-	// 送信
-	c.conn.Write(format(cmd, ExecuteCommand))
-	// 読み込み
-	r := c.result()
-	return r.Body
+func (c *Rcon) SendCommand(cmd string) (result *RconRes, err error) {
+	return c.Send(ExecuteCommand, cmd)
 }
 
 func (c *Rcon) Close() error {
 	return c.conn.Close()
 }
 
-// 整形
-func format(cmd string, sendType SendType) []byte {
-	body := []byte(cmd)
-	size := int32(4 + 4 + len([]byte(body)) + 2)
-	uniqueID++
-	var id int32 = int32(uniqueID)
-
-	p := packet{}
-	p.Write(size)
-	p.Write(id)
-	p.Write(sendType)
-	p.Write(body)
-	p.Write([]byte{0x0, 0x0})
-	return p.buffer.Bytes()
+type RconRes struct {
+	Size int32
+	ID   int32
+	Type SendType
+	Body []byte
 }
 
-// 実行結果を入手
-func (c *Rcon) result() (result packetBody) {
-	b := make([]byte, 4096)
-	c.conn.Read(b)
-	buf := bytes.NewBuffer(b)
-	p := packet{buffer: buf}
+func (rcon *Rcon) Send(sendType SendType, body string) (res *RconRes, err error) {
+	// Fromat
+	bodyBytes := []byte(body)
+	size := int32(4 + 4 + len(bodyBytes) + 2)
+	packetID := rcon.uniqueID
+	rcon.uniqueID++
 
-	p.Read(&result.Size)
-	p.Read(&result.ID)
-	p.Read(&result.Type)
-	body := buf.Bytes()
-	result.Body = string(body[:result.Size-4-4-2]) // 全体のサイズ-ID-Type-Null文字
+	sendPacket := packet{}
+	sendPacket.write(size)
+	sendPacket.write(packetID)
+	sendPacket.write(sendType)
+	sendPacket.write(body)
+	sendPacket.write([]byte{0x0, 0x0})
+	// Send
+	_, err = rcon.conn.Write(sendPacket.buffer.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	// Read
+	rcon.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	b := make([]byte, 4096)
+	_, err = rcon.conn.Read(b)
+	if err != nil {
+		return nil, err
+	}
+
+	readBuf := bytes.NewBuffer(b)
+	readPacket := packet{buffer: readBuf}
+	readPacket.read(&res.Size)
+	readPacket.read(&res.ID)
+	readPacket.read(&res.Type)
+	res.Body = readBuf.Bytes()[:res.Size-4-4-2] // 全体のサイズ-ID-Type-Null文字
 	return
 }
 
@@ -94,20 +104,13 @@ type packet struct {
 	buffer *bytes.Buffer
 }
 
-type packetBody struct {
-	Size int32
-	ID   int32
-	Type int32
-	Body string
-}
-
-func (p *packet) Write(v interface{}) {
+func (p *packet) write(v interface{}) {
 	if p.buffer == nil {
 		p.buffer = new(bytes.Buffer)
 	}
 	binary.Write(p.buffer, binary.LittleEndian, v)
 }
 
-func (p *packet) Read(v interface{}) {
+func (p *packet) read(v interface{}) {
 	binary.Read(p.buffer, binary.LittleEndian, v)
 }
