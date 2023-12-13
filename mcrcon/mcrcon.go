@@ -42,7 +42,7 @@ func Login(address, password string) (rcon *Rcon, err error) {
 
 	// 送信
 	res, err := rcon.Send(ServerAuth, password)
-	if res.Type == BadAuth {
+	if res.Type != AuthSuccess {
 		return nil, fmt.Errorf("failed rcon server auth")
 	}
 	return
@@ -75,7 +75,7 @@ func (rcon *Rcon) Send(sendType SendType, body string) (res *RconRes, err error)
 	sendPacket.write(size)
 	sendPacket.write(packetID)
 	sendPacket.write(sendType)
-	sendPacket.write(body)
+	sendPacket.write(bodyBytes)
 	sendPacket.write([]byte{0x0, 0x0})
 	// Send
 	_, err = rcon.conn.Write(sendPacket.buffer.Bytes())
@@ -86,13 +86,14 @@ func (rcon *Rcon) Send(sendType SendType, body string) (res *RconRes, err error)
 	// Read
 	rcon.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 	b := make([]byte, 4096)
-	_, err = rcon.conn.Read(b)
+	n, err := rcon.conn.Read(b)
 	if err != nil {
 		return nil, err
 	}
 
-	readBuf := bytes.NewBuffer(b)
+	readBuf := bytes.NewBuffer(b[:n])
 	readPacket := packet{buffer: readBuf}
+	res = &RconRes{}
 	readPacket.read(&res.Size)
 	readPacket.read(&res.ID)
 	readPacket.read(&res.Type)
