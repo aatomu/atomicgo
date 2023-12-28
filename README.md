@@ -1,3 +1,4 @@
+# Repository Changed github.com/aatomu/aatomlib
 # atomicgo
 開発環境 : go1.20.1 linux/amd64  
 
